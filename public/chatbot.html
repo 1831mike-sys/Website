@@ -191,6 +191,7 @@ CONVERSATION RULES:
 - Reference earlier messages naturally: "As you mentioned...", "Going back to your question about...", "Since you're team 1234..."
 - Never repeat info already given unless asked
 - If someone asks a follow-up like "tell me more" or "what about that?" — know what they're referring to from context
+- Answer the specific follow-up directly. Do not repeat a full list when the visitor asks for one event, award, detail, or clarification from the previous answer.
 - Match the person's tone and energy throughout the whole conversation
 - Format emphasis with standard Markdown (**bold**, *italic*, ~~strikethrough~~); do not output raw HTML tags such as <strong>, <b>, <em>, or <s>.
 
@@ -363,7 +364,7 @@ const P = {
 // have a perfect canned answer for (same info the quick-reply buttons give).
 // Kept deliberately narrow to avoid misfiring on genuine live-data questions.
 const INTENT_SHORTCUTS = [
-  { key: 'awards',   patterns: [/\bawards?\b/, /\btrophy|trophies\b/, /\bwhat.*(have you|has 1831).*(won|win)\b/] },
+  { key: 'awards',   patterns: [/\b(our|your|list|show|full|all)\s+awards?\b/, /\btrophy|trophies\b/, /\bwhat.*(have you|has 1831).*(won|win)\b/] },
   { key: 'whyPickUs', patterns: [/\bwhy (pick|choose) (you|1831)/, /\bwhy should we (pick|choose|use|take)/, /\bwhat makes (you|1831m)/, /\bsecret sauce\b/] },
   { key: 'whoAreWe', patterns: [/\bwho (are|is) (you|1831m)\b/, /\btell me about (yourself|the team|1831m)\b/, /\babout (the )?team\b/] },
   { key: 'contact',  patterns: [/\bcontact\b/, /\bemail address\b/, /\bhow (do|can) i (contact|reach|email)/, /\bget in touch\b/] },
