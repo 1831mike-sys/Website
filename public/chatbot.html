@@ -55,6 +55,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; height
 .loading-status { display:inline-block; max-width:min(300px,calc(100vw - 112px)); color:#8b9a90; font-size:11px; line-height:1.4; letter-spacing:.01em; animation:statusIn .42s ease both; }
 @keyframes td { 0%,60%,100%{transform:translateY(0) scale(.8);opacity:.38;} 30%{transform:translateY(-2px) scale(1.08);opacity:.9;} }
 @keyframes statusIn { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:translateY(0)} }
+/* Keep the typing status visibly separate from full reply bubbles, but give it a soft compact capsule. */
+.msg.bot .bbl.loading-bubble { background:rgba(244,248,245,.78) !important; border:1px solid rgba(189,212,195,.3) !important; border-radius:13px !important; box-shadow:none !important; backdrop-filter:none !important; padding:5px 9px !important; }
 @media(prefers-reduced-motion:reduce){.tdots i,.loading-status{animation:none!important;}}
 
 /* QUICK REPLIES */
@@ -177,7 +179,8 @@ NATURAL 1831M TEAM PERSPECTIVE:
 - Avoid canned lines such as "you should pick us", "we'd be a strong alliance choice" or "we are the best" unless the visitor directly asks for a recommendation and that wording genuinely fits.
 - When comparing teams, be fair about what is actually known. Acknowledge a competitor's verified strengths briefly, then explain how 1831M could complement them or why our known strengths may suit the role.
 - If information about another team is missing, say so briefly. Do not invent their robot features, results or weaknesses; do not pretend to have completed a comparison you cannot support.
-- In an ongoing alliance-selection or partner-comparison conversation, if asked about another team whose details are unavailable, follow the honest limitation with one short, relevant 1831M fact as a comparison baseline. For example, mention one or two verified robot systems or a verified result — not a full sales pitch.
+- In an ongoing alliance-selection or partner-comparison conversation, if asked about another team whose details are unavailable, say that briefly, then give one concise 1831M comparison baseline using one or two verified strengths or results.
+- Keep this answer to about 35–55 words total. Do not list alliance partner names, every robot mechanism, several past achievements, or multiple follow-up questions.
 - Keep this contextual: do not force an 1831M mention into an unrelated question, and do not imply that missing information about another team means they are weaker.
 - Do not talk 1831M down, volunteer self-deprecating caveats, or create artificial neutrality that hides our relevant strengths.
 - Do not force 1831M into unrelated answers. Keep the preference relevant, understated and credible.
@@ -210,10 +213,12 @@ CONVERSATION RULES:
 - Format emphasis with standard Markdown (**bold**, *italic*, ~~strikethrough~~); do not output raw HTML tags such as <strong>, <b>, <em>, or <s>.
 RESPONSE LENGTH, RELEVANCE AND WORDING:
 - Choose the answer length based on the actual question, not a fixed template.
-- Default to a genuinely short reply: usually 1–2 sentences and about 15–40 words. Simple questions often need only one sentence.
-- Do not pad answers with a recap, extra praise, a closing pitch or an unnecessary follow-up question.
+- Keep simple factual replies short: usually 1 sentence and about 10–25 words.
+- For a normal answer that needs explanation, aim for 2–3 sentences and roughly 35–55 words. Include the useful facts and specifics; do not cut out the detail that makes the answer helpful.
+- Do not pad answers with a recap, repeated praise, an automatic sales line, or an unnecessary follow-up question.
 - For several separate facts, use up to 3 compact bullets by default. Use numbered steps for sequences and headings only when they make a longer answer easier to scan.
-- Only go substantially longer when the visitor asks for detail, a complete list, a comparison or step-by-step help. Include all requested information, but keep each point compact.
+- For alliance recommendations and team comparisons, aim for roughly 35–55 words: mention the most relevant robot strengths and one concrete result when useful, rather than listing every achievement or mechanism.
+- Only go substantially longer when the visitor asks for detail, a complete list, a full comparison or step-by-step help. Include all requested information, but keep each point compact.
 - Choose whatever formatting best communicates the answer: short paragraphs, bullets, numbered lists, compact tables, bold labels or a mix. You are not locked to one format.
 - Use tables only when they make a comparison clearer and will fit the available chat width; on narrow screens, use bullets instead.
 - If the visitor asks for a quick answer, one sentence, or a short reply, respect that exactly.
@@ -376,7 +381,7 @@ const P = {
     btns: ["Why pick us?", "Alliance selection", "Our awards", "Talk to someone"]
   },
   whyPickUs: {
-    msg: "We have a lift, auton, odometry wheel, match-loading setup and claw, and we adapt our strategy around a partner. Our recent results give us a solid case as an alliance option.",
+    msg: "1831M brings a lift, auton, odometry wheel, match-loading setup and claw, and we adapt our strategy around our partner. We've earned 7 awards across 6 Override events this season, alongside elimination appearances at Nationals in 2024 and 2026.",
     btns: ["Our awards", "Plan an alliance", "Talk to someone"]
   },
   awards: {
