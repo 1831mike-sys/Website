@@ -192,6 +192,7 @@ CONVERSATION RULES:
 - Never repeat info already given unless asked
 - If someone asks a follow-up like "tell me more" or "what about that?" — know what they're referring to from context
 - Match the person's tone and energy throughout the whole conversation
+- Format emphasis with standard Markdown (**bold**, *italic*, ~~strikethrough~~); do not output raw HTML tags such as <strong>, <b>, <em>, or <s>.
 
 KNOWN FACTS:
 - Team: 1831M, known as "King's Team Mike" from The King's School, North Parramatta, NSW, Australia
@@ -569,30 +570,13 @@ async function handleInput(text){
   await handleAI(text, true);
 }
 
-// SMART CONTEXT (item 7): decide how much conversation history to send per
-// call. Short conversations just send everything. Long ones send MORE
-// context only when the latest message seems to reference earlier
-// conversation (pronouns like "that", "it", "again", "you said"...);
-// otherwise just the recent messages, since a fresh standalone question
-// rarely needs the whole back-and-forth. This varies per message — it isn't
-// a fixed cutoff.
-function needsFullContext(t) {
-  return /\b(that|this|it|again|earlier|before|same|also|those|these)\b/i.test(t)
-      || /\byou (said|mentioned)\b/i.test(t)
-      || /^(and|but|ok(ay)?|so|what about|also)\b/i.test((t||'').trim());
-}
-
+// Keep recent conversation context available on every turn. Previously this
+// was reduced to six messages for some prompts, which could drop the exact
+// assistant reply a visitor was asking about. The local history retains up to
+// 40 turns; send the latest 30 messages to the model on every request.
 function buildContextWindow() {
   const orientation = {role:'system', content:`VISITOR VIEW CONTEXT (orientation only): The visitor is currently viewing the “${pageContext.title}” section of the 1831M website. ${pageContext.description} Use this only when it helps answer naturally; do not claim the visitor asked about this section, and do not invent facts from it.`};
-  if (history.length <= 6) return [orientation, ...history]; // short conversation — just send it all
-  const lastUser = [...history].reverse().find(m => m.role === 'user');
-  const t = (lastUser?.content || '').toLowerCase();
-  if (needsFullContext(t)) {
-    console.log('🧠 Referential question — sending extended context (last 20 msgs)');
-    return [orientation, ...history.slice(-20)];
-  }
-  console.log('🧠 Standalone question — sending recent context only (last 6 msgs)');
-  return [orientation, ...history.slice(-6)];
+  return [orientation, ...history.slice(-30)];
 }
 
 // Extract specific facts (numbers, team numbers, proper nouns) from a response
@@ -841,16 +825,33 @@ function escapeHtml(s) {
 }
 
 function formatReply(raw) {
-  // Escape first so any HTML/script the model echoes back (e.g. from live
-  // third-party VEX Events data, or a user's message) becomes inert text —
-  // only THEN do we re-introduce the specific safe tags we intend.
-  return escapeHtml(raw)
-    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+  // Some models return HTML-style formatting tags (for example <strong>,
+  // <em>, or <s>) instead of Markdown. Convert only these known formatting
+  // tags to Markdown first; all other HTML is escaped below and stays inert.
+  const normalized = String(raw)
+    .replace(/<\\s*(strong|b)\\s*>/gi, '**')
+    .replace(/<\\s*\\/\\s*(strong|b)\\s*>/gi, '**')
+    .replace(/<\\s*(em|i)\\s*>/gi, '*')
+    .replace(/<\\s*\\/\\s*(em|i)\\s*>/gi, '*')
+    .replace(/<\\s*(s|strike|del)\\s*>/gi, '~~')
+    .replace(/<\\s*\\/\\s*(s|strike|del)\\s*>/gi, '~~')
+    .replace(/<\\s*br\\s*\\/?>/gi, '\\n')
+    .replace(/<\\s*\\/?p\\s*>/gi, '\\n')
+    .replace(/<\\s*li\\s*>/gi, '\\n- ')
+    .replace(/<\\s*\\/li\\s*>/gi, '')
+    .replace(/<\\s*\\/?(ul|ol)\\s*>/gi, '\\n');
+
+  // Escape all remaining HTML before introducing our own safe display tags.
+  return escapeHtml(normalized)
+    .replace(/\\*\\*(.+?)\\*\\*/g,'<strong>$1</strong>')
+    .replace(/~~(.+?)~~/g,'<s>$1</s>')
+    .replace(/\\*(.+?)\\*/g,'<em>$1</em>')
+    .replace(/__(.+?)__/g,'<strong>$1</strong>')
+    .replace(/_(.+?)_/g,'<em>$1</em>')
     .replace(/^#{1,3} (.+)$/gm,'<strong>$1</strong>')
     .replace(/^[-•] (.+)$/gm,'• $1')
-    .replace(/\n\n/g,'<br><br>')
-    .replace(/\n/g,'<br>');
+    .replace(/\\n\\n/g,'<br><br>')
+    .replace(/\\n/g,'<br>');
 }
 </script>
 </body>
