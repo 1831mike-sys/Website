@@ -45,12 +45,16 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; height
 .checking-badge::before { content: ''; width: 6px; height: 6px; background: #2563eb; border-radius: 50%; animation: bl 1s infinite; }
 .corrected-note { font-size: 11px; color: #94a3b8; margin-top: 6px; font-style: italic; }
 
-/* TYPING */
-.tdots { display: flex; align-items: center; gap: 5px; padding: 10px 14px; }
-.tdots span { width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; animation: td 1.3s ease-in-out infinite; }
-.tdots span:nth-child(2) { animation-delay: .18s; }
-.tdots span:nth-child(3) { animation-delay: .36s; }
-@keyframes td { 0%,60%,100%{transform:scale(0.8);opacity:0.4;} 30%{transform:scale(1.2);opacity:1;background:#2563eb;} }
+/* TYPING — small inline indicator; the dots keep moving as the status changes */
+.loading-bubble { display:inline-flex; align-items:center; gap:9px; padding:7px 10px !important; background:transparent !important; max-width:100%; }
+.tdots { display:inline-flex; align-items:center; gap:4px; flex-shrink:0; }
+.tdots i { display:block; width:5px; height:5px; border-radius:50%; background:#91a69a; animation:td 1.25s ease-in-out infinite; }
+.tdots i:nth-child(2) { animation-delay:.16s; }
+.tdots i:nth-child(3) { animation-delay:.32s; }
+.loading-status { display:inline-block; color:#96a49b; font-size:11px; line-height:1.4; animation:statusIn .4s ease both; }
+@keyframes td { 0%,60%,100%{transform:translateY(0) scale(.8);opacity:.38;} 30%{transform:translateY(-2px) scale(1.08);opacity:.9;} }
+@keyframes statusIn { from{opacity:0;transform:translateY(3px);} to{opacity:1;transform:translateY(0);} }
+@media(prefers-reduced-motion:reduce){.tdots i,.loading-status{animation:none!important;}}
 
 /* QUICK REPLIES */
 #qr { padding: 8px 14px 10px; display: flex; flex-wrap: wrap; gap: 6px; flex-shrink: 0; border-top: 1px solid #f1f5f9; max-width: 760px; width: 100%; margin: 0 auto; }
@@ -203,8 +207,12 @@ CONVERSATION RULES:
 RESPONSE LENGTH, RELEVANCE AND WORDING:
 - Choose the answer length based on the actual question, not a fixed template.
 - For a simple factual question, answer directly in 1–3 short sentences. Aim for about 25–70 words unless the question clearly needs less or more.
+- Keep paragraphs short: usually 1–2 sentences. Avoid dense walls of text.
+- When presenting multiple facts, features, steps, awards, comparisons or recommendations, use concise bullet points by default. Use numbered steps for sequences and headings only when they genuinely improve scanning.
+- Choose whatever formatting best communicates the answer: short paragraphs, bullets, numbered lists, compact tables, bold labels or a mix. You are not locked to one format.
+- Use tables only when they make a comparison clearer and will fit the available chat width; on narrow screens, use bullets instead.
 - If the visitor asks for a quick answer, one sentence, or a short reply, respect that exactly.
-- If they ask for a full list, comparison, explanation, instructions, or technical detail, provide the requested depth. Use short headings or bullets only when they make the answer easier to scan.
+- If they ask for a full list, comparison, explanation, instructions, or technical detail, provide the requested depth, broken into short sections and scannable points.
 - Lead with the answer. Do not begin with filler such as "Certainly", "Great question", or a summary of the question.
 - Do not repeat facts or lists already provided in this conversation. For follow-ups, answer only the new point and use the earlier messages to resolve words like "that", "it", "they", or "the other event".
 - Keep the same topic and referent across follow-ups. If there are two plausible meanings, ask one brief clarifying question instead of guessing.
@@ -550,10 +558,53 @@ function addUsr(t){
   d.innerHTML=`<div class="bbl">${t.replace(/</g,'&lt;')}</div>`;
   $M.appendChild(d);$M.scrollTop=$M.scrollHeight;
 }
-function showT(checking=false){
+function getLoadingLines(question=''){
+  const q=String(question).toLowerCase();
+  if(/award|trophy|result|event|rank|season|vex/.test(q)) return [
+    'Checking 1831M’s season results…',
+    'Going through the team’s event details…',
+    'Putting the award and event details together…',
+    'Making sure the season details line up…'
+  ];
+  if(/robot|lift|auton|autonomous|od[o0]m|wheel|claw|match.?load|mechanism/.test(q)) return [
+    'Looking over 1831M’s robot details…',
+    'Putting the robot features into context…',
+    'Checking how the mechanisms fit together…',
+    'Working out the clearest way to explain the robot…'
+  ];
+  if(/alliance|partner|pick|strategy|team|compare/.test(q)) return [
+    'Thinking through what 1831M brings to an alliance…',
+    'Matching the team’s strengths to the question…',
+    'Putting together a practical alliance answer…',
+    'Considering how the robots could complement each other…'
+  ];
+  if(/override|game|goal|pin|cup|toggle|midfield|score/.test(q)) return [
+    'Reviewing the current Override game details…',
+    'Putting the scoring rules into context…',
+    'Checking the game terms before answering…',
+    'Working out the clearest explanation…'
+  ];
+  return [
+    'Working out the useful bits…',
+    'Putting the details in order…',
+    'Finding the clearest way to explain it…',
+    'Finishing the answer…'
+  ];
+}
+function getViewportContext(){
+  const width=Math.round($M?.clientWidth || window.innerWidth || 0);
+  const height=Math.round(window.innerHeight || 0);
+  const mobile=width>0 && width<560;
+  return `\n\nLIVE CHAT LAYOUT CONTEXT (use this to choose formatting):
+- Available message column width: about ${width || 'unknown'} CSS pixels; viewport height: about ${height || 'unknown'} CSS pixels.
+- Layout: ${mobile?'narrow/mobile':'wide/desktop'}.
+- Messages occupy a limited scrolling chat panel, not a full document. Keep the first screenful useful and avoid making the visitor scroll through a wall of text.
+- Adapt line length and structure to this width. Prefer short paragraphs and compact bullets; avoid wide tables or long unbroken lines on narrow layouts.
+- You may choose any Markdown formatting that improves clarity, but keep it compact and readable in this actual chat space.`;
+}
+function showT(question=''){
   const d=document.createElement('div');d.className='msg bot';d.id='ty';
-  const badge=checking?`<div class="checking-badge">Checking 1831m.com for latest info…</div>`:'';
-  d.innerHTML=`${AV}<div><div>${badge}</div><div class="bbl loading-bubble" style="padding:0"><div class="tdots"><span></span><span></span><span></span></div><div class="loading-status" aria-live="polite">Thinking…</div></div></div>`;
+  d.innerHTML=`${AV}<div class="bbl loading-bubble" role="status" aria-live="polite"><span class="tdots"><i></i><i></i><i></i></span><span class="loading-status">Preparing a useful answer…</span></div>`;
   $M.appendChild(d);$M.scrollTop=$M.scrollHeight;
 }
 function hideT(){const t=document.getElementById('ty');if(t)t.remove();}
@@ -666,7 +717,7 @@ async function getReply(keyIndex=0) {
       body: JSON.stringify({
         keyIndex,
         messages: [
-          {role:'system',content:SYS + (liveData ? '\n\nLIVE VEX EVENTS DATA:\n' + liveData : '')},
+          {role:'system',content:SYS + getViewportContext() + (liveData ? '\n\nLIVE VEX EVENTS DATA:\n' + liveData : '')},
           ...buildContextWindow()
         ]
       })
@@ -682,7 +733,7 @@ async function getReply(keyIndex=0) {
 
 // SPEED (item 2): streams the reply in as it's generated instead of waiting
 // for the whole thing. Falls back to non-streaming getReply() on any failure.
-async function streamReply() {
+async function streamReply(questionText='') {
   try {
     const res = await fetch(CHAT_ENDPOINT, {
       method: 'POST',
@@ -691,7 +742,7 @@ async function streamReply() {
         keyIndex: 0,
         stream: true,
         messages: [
-          {role:'system',content:SYS + (liveData ? '\n\nLIVE VEX EVENTS DATA:\n' + liveData : '')},
+          {role:'system',content:SYS + getViewportContext() + (liveData ? '\n\nLIVE VEX EVENTS DATA:\n' + liveData : '')},
           ...buildContextWindow()
         ]
       })
@@ -702,17 +753,17 @@ async function streamReply() {
     const loadingMessage = document.getElementById('ty');
     const bubbleEl = loadingMessage?.querySelector('.bbl') || addBot('');
     const loadingStatus = bubbleEl.querySelector('.loading-status');
+    const loadingLines = getLoadingLines(questionText);
     let loadingStage = 0;
     const loadingTimer = setInterval(() => {
-      loadingStage += 1;
       if (loadingStatus) {
-        loadingStatus.textContent = loadingStage === 1
-          ? 'Still working through that…'
-          : loadingStage === 2
-            ? 'Taking a little longer — putting the answer together…'
-            : 'Almost there…';
+        loadingStage = (loadingStage + 1) % loadingLines.length;
+        loadingStatus.textContent = loadingLines[loadingStage];
+        loadingStatus.style.animation = 'none';
+        void loadingStatus.offsetWidth;
+        loadingStatus.style.animation = '';
       }
-    }, 7000);
+    }, 5200);
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '', fullText = '', firstToken = true;
@@ -852,10 +903,10 @@ async function verifyInBackground(text, bubbleEl) {
 async function handleAI(text, alreadyAdded=false){
   if(busy)return;
   busy=true;$S.disabled=true;
-  showT(false);
+  showT(text);
 
   try {
-    let result = await streamReply();
+    let result = await streamReply(text);
 
     if (!result.ok) {
       console.warn('⚠️ Stream failed, retrying with a different key (non-streaming)...');
