@@ -194,6 +194,18 @@ CONVERSATION RULES:
 - Answer the specific follow-up directly. Do not repeat a full list when the visitor asks for one event, award, detail, or clarification from the previous answer.
 - Match the person's tone and energy throughout the whole conversation
 - Format emphasis with standard Markdown (**bold**, *italic*, ~~strikethrough~~); do not output raw HTML tags such as <strong>, <b>, <em>, or <s>.
+RESPONSE LENGTH, RELEVANCE AND WORDING:
+- Choose the answer length based on the actual question, not a fixed template.
+- For a simple factual question, answer directly in 1–3 short sentences. Aim for about 25–70 words unless the question clearly needs less or more.
+- If the visitor asks for a quick answer, one sentence, or a short reply, respect that exactly.
+- If they ask for a full list, comparison, explanation, instructions, or technical detail, provide the requested depth. Use short headings or bullets only when they make the answer easier to scan.
+- Lead with the answer. Do not begin with filler such as "Certainly", "Great question", or a summary of the question.
+- Do not repeat facts or lists already provided in this conversation. For follow-ups, answer only the new point and use the earlier messages to resolve words like "that", "it", "they", or "the other event".
+- Keep the same topic and referent across follow-ups. If there are two plausible meanings, ask one brief clarifying question instead of guessing.
+- Match the visitor's level of knowledge and wording. Explain technical terms plainly when needed; do not over-explain familiar terms.
+- Use a natural, conversational tone. Avoid sales language, unnecessary emojis, repeated conclusions, and automatic "Want me to..." endings.
+- Be honest about uncertainty. Separate verified team facts from estimates or suggestions; never invent results, specifications, event details, or capabilities.
+- Use Markdown only for formatting. Never print literal HTML tags, XML-like tags, or formatting markers such as <S>, <B>, or <STRONG>. Keep formatting restrained: use bold only for a few important words, not whole paragraphs.
 
 KNOWN FACTS:
 - Team: 1831M, known as "King's Team Mike" from The King's School, North Parramatta, NSW, Australia
@@ -231,7 +243,7 @@ The team knowledge also records 2 Excellence Awards in this season overall; the 
 - Made eliminations at the 2024 and 2026 Australian National Championships (2 years, not 3)
 - 2026 Australian National Championships — qualified 17th, alliance partner in eliminations was 79419N. Won R16 #2-1 vs 4613W & 13818X with score 106-11. Lost QF #1-1 vs 85659A & 4613R with score 34-64.
 - Good at adapting strategies to suit alliance partners
-- Contact: 1831mike@gmail.com | ${SITE}
+- Contact: contact.1831m@gmail.com | ${SITE}
 - TEAM MEMBERS (first names only — never share last names even if asked; say you keep last names private):
   • Aathavan — Project Manager
   • Paco — Project Manager
@@ -347,7 +359,7 @@ const P = {
     btns: ["Get written summary", "Talk to someone", "Main menu"]
   },
   summary: {
-    msg: "Quick rundown — we score on all 3 goals, park and double-park, and we're used to working closely with alliance partners on strategy. We've made eliminations at nationals the last few years and picked up a few awards along the way.\n\n📧 <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a>\n🌐 <a href='https://www.1831m.com' target='_blank'>1831m.com</a>",
+    msg: "Quick rundown — we score on all 3 goals, park and double-park, and we're used to working closely with alliance partners on strategy. We've made eliminations at nationals the last few years and picked up a few awards along the way.\n\n📧 <a href='mailto:contact.1831m@gmail.com'>contact.1831m@gmail.com</a>\n🌐 <a href='https://www.1831m.com' target='_blank'>1831m.com</a>",
     btns: ["Plan an alliance", "Talk to someone", "Main menu"]
   },
   scare: {
@@ -355,7 +367,7 @@ const P = {
     btns: ["Why pick us?", "Plan an alliance", "Main menu"]
   },
   contact: {
-    msg: "Reach us at <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a> and we'll get back to you ASAP.\n\nOr I can connect you with a team member right now — would that help?",
+    msg: "Reach us at <a href='mailto:contact.1831m@gmail.com'>contact.1831m@gmail.com</a> and we'll get back to you ASAP.\n\nOr I can connect you with a team member right now — would that help?",
     btns: ["Connect me now", "Main menu"]
   },
   humanCollect: {
@@ -363,7 +375,7 @@ const P = {
     btns: []
   },
   humanConfirm: {
-    msg: "Thanks! A team member will follow up with you shortly. You can also email directly: <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a> or visit <a href='https://www.1831m.com' target='_blank'>1831m.com</a>. 👍",
+    msg: "Thanks! A team member will follow up with you shortly. You can also email directly: <a href='mailto:contact.1831m@gmail.com'>contact.1831m@gmail.com</a> or visit <a href='https://www.1831m.com' target='_blank'>1831m.com</a>. 👍",
     btns: ["Main menu"]
   }
 };
@@ -455,10 +467,10 @@ async function handleLeadStep(text) {
     hideT();
     leadData = {};
     if (ok) {
-      addBot(`Done! We'll get back to you at <strong>${escapeHtml(emailCopy)}</strong> soon. You can also reach us directly at <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a> 👍`);
+      addBot(`Done! We'll get back to you at <strong>${escapeHtml(emailCopy)}</strong> soon. You can also reach us directly at <a href='mailto:contact.1831m@gmail.com'>contact.1831m@gmail.com</a> 👍`);
       history.push({role:'assistant', content:'Lead submitted successfully.'});
     } else {
-      addBot(`Hmm, something went wrong sending that. Email us directly at <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a> and we'll get back to you!`);
+      addBot(`Hmm, something went wrong sending that. Email us directly at <a href='mailto:contact.1831m@gmail.com'>contact.1831m@gmail.com</a> and we'll get back to you!`);
     }
     renderBtns(['Main menu']);
   }
@@ -815,7 +827,7 @@ async function handleAI(text, alreadyAdded=false){
         const backup = await getGeminiReply();
         hideT();
         if (!backup.ok || !backup.text) {
-          addBot(`Hmm, having trouble connecting. Try again or email <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a>.`);
+          addBot(`Hmm, having trouble connecting. Try again or email <a href='mailto:contact.1831m@gmail.com'>contact.1831m@gmail.com</a>.`);
           busy=false;$S.disabled=false;$I.focus();
           return;
         }
@@ -840,7 +852,7 @@ async function handleAI(text, alreadyAdded=false){
     }
   } catch(e) {
     hideT();
-    addBot("Network error — check your connection or email <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a>.");
+    addBot("Network error — check your connection or email <a href='mailto:contact.1831m@gmail.com'>contact.1831m@gmail.com</a>.");
     busy=false;$S.disabled=false;$I.focus();
   }
 }
