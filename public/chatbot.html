@@ -205,6 +205,13 @@ RESPONSE LENGTH, RELEVANCE AND WORDING:
 - Match the visitor's level of knowledge and wording. Explain technical terms plainly when needed; do not over-explain familiar terms.
 - Use a natural, conversational tone. Avoid sales language, unnecessary emojis, repeated conclusions, and automatic "Want me to..." endings.
 - Be honest about uncertainty. Separate verified team facts from estimates or suggestions; never invent results, specifications, event details, or capabilities.
+MATHS AND PROBLEM SOLVING:
+- You can help with arithmetic, algebra, percentages, ratios, geometry, unit conversions, statistics and robotics calculations.
+- Work through calculations carefully before replying. Check arithmetic with a second method or by substituting the result back into the original problem when practical.
+- Give the result clearly, include key working when it helps the visitor understand, and explain units. Keep simple calculations short; show steps for multi-step problems.
+- Never guess a numerical result. If required values or assumptions are missing, ask for the missing information. State assumptions when needed.
+- Do not claim you cannot do maths; attempt the problem and be transparent about any uncertainty.
+
 - Use Markdown only for formatting. Never print literal HTML tags, XML-like tags, or formatting markers such as <S>, <B>, or <STRONG>. Keep formatting restrained: use bold only for a few important words, not whole paragraphs.
 
 KNOWN FACTS:
@@ -224,7 +231,7 @@ CURRENT SEASON — 2026–2027 VEX V5RC OVERRIDE (7 awards; do not omit any):
 • Robot Skills Champion (V5) — Override League @ The King's School [RE-V5RC-26-5090]
 • Excellence Award - Middle School (V5) — Override League @ The King's School [RE-V5RC-26-5090]
 • Design Award (V5) — NSW Middle School State Championships @ Knox Grammar School [VE-V5-26-66512]
-Current-season total: 7 awards across 6 events.
+Current-season total: 7 awards across 6 events. Exact current-season category tally: 4 Excellence Awards (Shore, UNSW RCC, Knox tournament code RE-V5RC-26-5245, and King's School League), 2 Design Awards (Knox tournament code RE-V5RC-26-5244 and State Championships code VE-V5-26-66512), and 1 Robot Skills Champion (King's School League). These add to 7. Use these exact counts; do not say 3 Excellence Awards.
 IMPORTANT EVENT DISTINCTION — answer accurately:
 • The ONLY single event that gave 1831M two awards is Override League @ The King's School [RE-V5RC-26-5090]: Robot Skills Champion + Excellence Award - Middle School.
 • Knox Grammar School Override Tournament [RE-V5RC-26-5245] gave Excellence Award - Middle School.
@@ -384,7 +391,7 @@ const P = {
 // have a perfect canned answer for (same info the quick-reply buttons give).
 // Kept deliberately narrow to avoid misfiring on genuine live-data questions.
 const INTENT_SHORTCUTS = [
-  { key: 'awards',   patterns: [/\b(list|show|tell me|what are|what were|our|all|full)\b.*\bawards?\b/, /\b(list|show|tell me|our|all|full)\b.*\btroph(?:y|ies)\b/, /\bwhat.*(have you|has 1831).*(won|win)\b/] },
+  { key: 'awards', patterns: [/\b(list|show|tell me|what are|what were|our|all|full)\b.*\bawards?\b/, /\bwhat.*\bawards?\b.*\b(won|win|received)\b/, /\b(list|show|tell me|our|all|full)\b.*\btroph(?:y|ies)\b/, /\bwhat.*(have (you|we)|has 1831).*(won|win)\b/] },
   { key: 'whyPickUs', patterns: [/\bwhy (pick|choose) (you|1831)/, /\bwhy should we (pick|choose|use|take)/, /\bwhat makes (you|1831m)/, /\bsecret sauce\b/] },
   { key: 'whoAreWe', patterns: [/\bwho (are|is) (you|1831m)\b/, /\btell me about (yourself|the team|1831m)\b/, /\babout (the )?team\b/] },
   { key: 'contact',  patterns: [/\bcontact\b/, /\bemail address\b/, /\bhow (do|can) i (contact|reach|email)/, /\bget in touch\b/] },
@@ -534,7 +541,7 @@ function addUsr(t){
 function showT(checking=false){
   const d=document.createElement('div');d.className='msg bot';d.id='ty';
   const badge=checking?`<div class="checking-badge">Checking 1831m.com for latest info…</div>`:'';
-  d.innerHTML=`${AV}<div><div>${badge}</div><div class="bbl" style="padding:0"><div class="tdots"><span></span><span></span><span></span></div></div></div>`;
+  d.innerHTML=`${AV}<div><div>${badge}</div><div class="bbl loading-bubble" style="padding:0"><div class="tdots"><span></span><span></span><span></span></div><div class="loading-status" aria-live="polite">Thinking…</div></div></div>`;
   $M.appendChild(d);$M.scrollTop=$M.scrollHeight;
 }
 function hideT(){const t=document.getElementById('ty');if(t)t.remove();}
@@ -679,11 +686,24 @@ async function streamReply() {
     });
     if (!res.ok || !res.body) return { ok:false, status: res.status };
 
-    hideT();
-    const bubbleEl = addBot('');
+    // Keep the typing indicator visible until the first actual response token.
+    const loadingMessage = document.getElementById('ty');
+    const bubbleEl = loadingMessage?.querySelector('.bbl') || addBot('');
+    const loadingStatus = bubbleEl.querySelector('.loading-status');
+    let loadingStage = 0;
+    const loadingTimer = setInterval(() => {
+      loadingStage += 1;
+      if (loadingStatus) {
+        loadingStatus.textContent = loadingStage === 1
+          ? 'Still working through that…'
+          : loadingStage === 2
+            ? 'Taking a little longer — putting the answer together…'
+            : 'Almost there…';
+      }
+    }, 7000);
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let buffer = '', fullText = '';
+    let buffer = '', fullText = '', firstToken = true;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -701,6 +721,11 @@ async function streamReply() {
           const delta = json.choices?.[0]?.delta?.content || '';
           if (delta) {
             fullText += delta;
+            if (firstToken) {
+              firstToken = false;
+              clearInterval(loadingTimer);
+              if (loadingMessage) loadingMessage.removeAttribute('id');
+            }
             bubbleEl.innerHTML = formatReply(fullText);
             $M.scrollTop = $M.scrollHeight;
           }
@@ -708,6 +733,7 @@ async function streamReply() {
       }
     }
 
+    clearInterval(loadingTimer);
     if (!fullText) { bubbleEl.closest('.msg')?.remove(); return { ok:false, status:'empty' }; }
     if (/^\s*(User Safety|Response Safety)\s*:/im.test(fullText)) {
       bubbleEl.closest('.msg')?.remove();
@@ -715,6 +741,7 @@ async function streamReply() {
     }
     return { ok:true, text: fullText, bubbleEl };
   } catch(e) {
+    if (typeof loadingTimer !== 'undefined') clearInterval(loadingTimer);
     console.warn('❌ Stream failed:', e.message);
     return { ok:false, status:'exception' };
   }
