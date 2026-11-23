@@ -827,7 +827,7 @@ function escapeHtml(s) {
 function formatReply(raw) {
   // Some models return HTML-style formatting tags instead of Markdown.
   // Convert only these known formatting tags; escape all other HTML below.
-  const normalized = String(raw)
+  const normalized = String(raw).replace(/\\([*_~])/g, '$1')
     .replace(/<\s*(strong|b)\s*>/gi, '**')
     .replace(/<\s*\/\s*(strong|b)\s*>/gi, '**')
     .replace(/<\s*(em|i)\s*>/gi, '*')
