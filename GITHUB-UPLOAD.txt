@@ -1,0 +1,10 @@
+GITHUB UPLOAD — NO TERMINAL REQUIRED
+
+1. Extract this ZIP on your Mac.
+2. Open https://github.com/1831mike-sys/Website
+3. Choose Add file > Upload files.
+4. Drag the extracted folder's CONTENTS into the upload area. Do not upload the ZIP file itself.
+5. Commit the files to the branch linked to Netlify (usually main).
+6. Check Netlify's Deploys page for the automatic build.
+
+Keep the directory layout exactly as it is: netlify.toml, package.json, public/, and netlify/functions/ must be at the repository root.

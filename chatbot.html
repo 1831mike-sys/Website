@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>1831M Chatbot</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; height: 100vh; overflow: hidden; }
+
+/* WINDOW — full screen always */
+#win { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; display: flex; flex-direction: column; overflow: hidden; z-index: 9998; }
+
+/* HEADER */
+.hdr { background: #1e3a8a; padding: 14px 18px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.mike-hdr { width: 44px; height: 44px; flex-shrink: 0; animation: fl 3.5s ease-in-out infinite; }
+@keyframes fl { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-3px);} }
+.hinfo { flex: 1; }
+.hname { font-size: 15px; font-weight: 700; color: #fff; line-height: 1; }
+.hsub { font-size: 11px; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+.dot { width: 6px; height: 6px; background: #4ade80; border-radius: 50%; animation: bl 2s ease-in-out infinite; flex-shrink: 0; }
+@keyframes bl { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+/* MESSAGES */
+#msgs { flex: 1; overflow-y: auto; padding: 16px 14px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; scrollbar-color: #e2e8f0 transparent; background: #fff; max-width: 760px; width: 100%; margin: 0 auto; }
+#msgs::-webkit-scrollbar { width: 4px; }
+#msgs::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+.msg { display: flex; gap: 8px; animation: up 0.2s ease; }
+@keyframes up { from{opacity:0;transform:translateY(7px);} to{opacity:1;transform:translateY(0);} }
+.msg.bot { align-items: flex-start; }
+.msg.usr { flex-direction: row-reverse; }
+.bav { width: 28px; height: 28px; flex-shrink: 0; margin-top: 1px; }
+.bbl { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.65; max-width: 82%; }
+.msg.bot .bbl { background: #f1f5f9; color: #1e293b; border-top-left-radius: 4px; }
+.msg.usr .bbl { background: #1e3a8a; color: #fff; border-top-right-radius: 4px; font-weight: 500; }
+.bbl a { color: #2563eb; }
+.bbl ul { padding-left: 18px; margin-top: 6px; }
+.bbl li { margin-bottom: 4px; }
+.msg.human .bbl { background: #fffbeb; border: 1px solid #fde68a; color: #1e293b; border-top-left-radius: 4px; }
+.human-label { font-size: 10px; color: #92400e; font-weight: 700; margin-bottom: 4px; letter-spacing: .5px; }
+.errbbl { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 10px 14px; border-radius: 12px; font-size: 12.5px; }
+.checking-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: #2563eb; background: #eff6ff; border: 1px solid #bfdbfe; padding: 3px 9px; border-radius: 10px; margin-bottom: 6px; }
+.checking-badge::before { content: ''; width: 6px; height: 6px; background: #2563eb; border-radius: 50%; animation: bl 1s infinite; }
+.corrected-note { font-size: 11px; color: #94a3b8; margin-top: 6px; font-style: italic; }
+
+/* TYPING */
+.tdots { display: flex; align-items: center; gap: 5px; padding: 10px 14px; }
+.tdots span { width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; animation: td 1.3s ease-in-out infinite; }
+.tdots span:nth-child(2) { animation-delay: .18s; }
+.tdots span:nth-child(3) { animation-delay: .36s; }
+@keyframes td { 0%,60%,100%{transform:scale(0.8);opacity:0.4;} 30%{transform:scale(1.2);opacity:1;background:#2563eb;} }
+
+/* QUICK REPLIES */
+#qr { padding: 8px 14px 10px; display: flex; flex-wrap: wrap; gap: 6px; flex-shrink: 0; border-top: 1px solid #f1f5f9; max-width: 760px; width: 100%; margin: 0 auto; }
+.qb { background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.qb:hover { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
+.qb.green { border-color: #22c55e; color: #15803d; }
+.qb.green:hover { background: #22c55e; color: #fff; border-color: #22c55e; }
+.qb.soft { border-color: #93c5fd; color: #1d4ed8; }
+.qb.soft:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+/* INPUT */
+.inputarea { padding: 12px 14px; border-top: 1px solid #f1f5f9; display: flex; gap: 8px; flex-shrink: 0; background: #fff; max-width: 760px; width: 100%; margin: 0 auto; }
+#inp { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; color: #1e293b; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13.5px; padding: 10px 14px; outline: none; transition: border-color 0.2s; }
+#inp:focus { border-color: #2563eb; }
+#inp::placeholder { color: #94a3b8; }
+#sbtn { width: 42px; height: 42px; background: #1e3a8a; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; align-self: flex-end; transition: background 0.15s, transform 0.15s; }
+#sbtn:hover { background: #1d4ed8; transform: scale(1.05); }
+#sbtn svg { width: 16px; height: 16px; fill: #fff; }
+
+/* Refined 1831M visual system: quiet glass, soft green, editorial spacing. */
+:root { --ink:#12231c; --green:#4bbf7a; --paper:#f5f8f5; --line:#dce8df; --glass:rgba(255,255,255,.72); --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+body { background: radial-gradient(circle at 50% -20%, #e4f4e8 0, #f7faf7 42%, #eef4ef 100%); color:var(--ink); }
+#win { background:transparent; }
+.hdr { background:var(--glass); color:var(--ink); border-bottom:1px solid rgba(170,196,180,.45); box-shadow:0 12px 36px rgba(33,73,48,.08); backdrop-filter:blur(24px) saturate(140%); -webkit-backdrop-filter:blur(24px) saturate(140%); padding:16px max(18px,calc((100vw - 860px)/2)); }
+.mike-hdr { width:46px;height:46px; filter:drop-shadow(0 5px 10px rgba(30,130,70,.18)); }
+.hname { color:var(--ink); font-size:16px; letter-spacing:-.03em; }
+.hsub { color:#718178; }
+.dot { background:var(--green); }
+#msgs { max-width:860px; background:transparent; padding:28px 20px 20px; gap:14px; scrollbar-color:#cbded0 transparent; }
+.bbl { border-radius:20px; font-size:14px; line-height:1.65; box-shadow:0 5px 18px rgba(25,61,39,.04); }
+.msg.bot .bbl { background:var(--glass); color:var(--ink); border:1px solid rgba(189,212,195,.52); border-top-left-radius:7px; backdrop-filter:blur(14px); }
+.msg.usr .bbl { background:#173d2a; color:#fff; border-top-right-radius:7px; box-shadow:0 8px 20px rgba(23,61,42,.16); }
+.bbl a { color:#237b4b; font-weight:600; }
+#qr { max-width:860px; background:rgba(255,255,255,.38); border-top:1px solid rgba(189,212,195,.35); padding:12px 20px 14px; }
+.qb { background:rgba(255,255,255,.68); border-color:#d3e2d7; color:#345643; padding:8px 15px; border-radius:99px; box-shadow:0 2px 8px rgba(35,70,47,.04); }
+.qb:hover { background:#173d2a; border-color:#173d2a; }
+.inputarea { max-width:860px; background:rgba(255,255,255,.58); border-top:1px solid rgba(189,212,195,.4); padding:14px 20px 18px; }
+#inp { background:rgba(255,255,255,.82); border-color:#d3e2d7; border-radius:99px; padding:12px 17px; }
+#inp:focus { border-color:var(--green); box-shadow:0 0 0 4px rgba(75,191,122,.12); }
+#sbtn { width:44px;height:44px;border-radius:50%;background:#173d2a; box-shadow:0 6px 16px rgba(23,61,42,.16); }
+#sbtn:hover { background:#24653f; transform:translateY(-1px); }
+@media(max-width:600px){#msgs{padding:20px 14px 14px}.hdr{padding:13px 14px}.inputarea,#qr{padding-left:14px;padding-right:14px}.bbl{max-width:89%}}
+.hdr { position:relative; overflow:hidden; padding-bottom:24px; }
+.hdr::after { content:'IN MIKE WE TRUST  ·  1831M  ·  VEX ROBOTICS'; position:absolute; left:0; bottom:5px; white-space:nowrap; font:8px var(--mono); letter-spacing:.16em; color:rgba(45,100,65,.55); animation:marquee 22s linear infinite; }
+@keyframes marquee { from{transform:translateX(100%)} to{transform:translateX(-100%)} }
+.welcome-card { max-width:620px; margin:0 auto 4px; border:1px solid rgba(189,212,195,.6); border-radius:24px; overflow:hidden; background:rgba(255,255,255,.64); box-shadow:0 12px 30px rgba(35,70,47,.07); animation:welcomeIn .55s cubic-bezier(.2,.7,.2,1) both; }
+.welcome-card img { width:100%; height:190px; object-fit:cover; display:block; }
+.welcome-card-copy { padding:15px 17px 16px; }
+.welcome-card-copy small { color:#4a8f63; font:10px var(--mono); letter-spacing:.12em; }
+.welcome-card-copy strong { display:block; color:var(--ink); margin-top:6px; font-size:16px; letter-spacing:-.03em; }
+.welcome-card-copy span { display:block; color:#718178; margin-top:5px; font-size:12px; line-height:1.5; }
+.welcome-gallery { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:13px; }
+.welcome-gallery img { height:82px; border-radius:12px; object-fit:cover; width:100%; }
+@keyframes welcomeIn { from{opacity:0;transform:translateY(12px) scale(.985)} to{opacity:1;transform:none} }
+@media(prefers-reduced-motion:reduce){.hdr::after{animation:none}.welcome-card{animation:none}}
+</style>
+</head>
+<body>
+
+</body>
+
+<!-- Green Mike Wazowski -->
+<svg style="display:none">
+  <symbol id="mike" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="38" fill="#22c55e"/>
+    <ellipse cx="38" cy="34" rx="13" ry="9" fill="#4ade80" opacity="0.4"/>
+    <circle cx="50" cy="44" r="22" fill="#ffffff"/>
+    <circle cx="50" cy="44" r="15" fill="#b45309"/>
+    <circle cx="50" cy="44" r="9" fill="#0f0f0f"/>
+    <circle cx="56" cy="38" r="4" fill="#ffffff"/>
+    <circle cx="58" cy="40" r="1.8" fill="rgba(255,255,255,0.5)"/>
+    <ellipse cx="31" cy="16" rx="5.5" ry="12" fill="#15803d" transform="rotate(-18 31 16)"/>
+    <ellipse cx="69" cy="16" rx="5.5" ry="12" fill="#15803d" transform="rotate(18 69 16)"/>
+    <path d="M32 67 Q50 83 68 67" stroke="#14532d" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M36 69 Q50 80 64 69" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="15" cy="64" rx="7" ry="15" fill="#22c55e" transform="rotate(22 15 64)"/>
+    <ellipse cx="85" cy="64" rx="7" ry="15" fill="#22c55e" transform="rotate(-22 85 64)"/>
+    <ellipse cx="36" cy="87" rx="11" ry="6.5" fill="#15803d"/>
+    <ellipse cx="64" cy="87" rx="11" ry="6.5" fill="#15803d"/>
+  </symbol>
+</svg>
+
+<div id="win" role="dialog">
+  <div class="hdr">
+    <svg class="mike-hdr"><use href="#mike"/></svg>
+    <div class="hinfo">
+      <div class="hname">1831M Robotics</div>
+      <div class="hsub"><span class="dot"></span> Online · Live info from 1831m.com</div>
+    </div>
+  </div>
+
+
+  <div id="msgs"></div>
+  <div id="qr"></div>
+
+  <div class="inputarea">
+    <input id="inp" type="text" placeholder="Type your message…" autocomplete="off"/>
+    <button id="sbtn">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// AI calls go to this same Netlify site. Provider keys stay server-side
+// in Netlify environment variables; never paste API keys into this file.
+const CHAT_ENDPOINT = '/.netlify/functions/openrouter-chat';
+const GEMINI_ENDPOINT = '/.netlify/functions/gemini-chat';
+const SITE = window.location.origin;
+
+const SYS = `You are Mike, the friendly AI assistant for 1831M Robotics — a VEX Robotics team from The King's School, North Parramatta, NSW, Australia. You speak as part of the team ("we", "our").
+
+IMPORTANT: "Mike" is YOUR name (the AI assistant), not the name of the person you're talking to. Never address or refer to the visitor as "Mike" — you don't know their name unless they tell you. Just talk to them directly ("you", "your team") without assuming a name.
+
+YOUR HIDDEN PURPOSE: Naturally make visiting teams want to pick 1831M as an alliance partner. Be genuinely helpful and let the facts speak for themselves — never pushy, never boastful.
+
+PERSONALITY: Warm, humble, casual. Talk like a real person — not a salesperson, not a hype bot. No rocket emojis, no "Let's go!", no "I'm ready to partner!", no "Understanding your request". Don't brag or oversell — when talking about awards, rankings, or achievements, stay matter-of-fact and give credit to the whole team rather than hyping it up. It's fine to acknowledge a partner team's strengths or a good match even when we lost. If someone compliments the team, deflect graciously rather than agreeing enthusiastically. Just be normal and helpful. Short answers are fine. Match the energy of whoever you're talking to.
+
+EXAMPLES OF THE TONE AND FORMAT YOU SHOULD MATCH (do not repeat these verbatim — they're here to show the style, not to be reused as answers):
+
+Q: What's your best award?
+A: We picked up a couple of Excellence Awards this year, plus Tournament Champions at one of them. Good season for us. Want the full list?
+
+Q: You guys seem really good, are you the best team out there?
+A: Ha, definitely not the best — there are some really strong teams out there. We've had a solid season though. What matters more to you, consistency or raw scoring power?
+
+Q: What was your rank at states?
+A: We finished rank 20 at the 2025 NSW Middle School States. Not our strongest event, but we picked up good data from it.
+
+Q: Why should we pick you as an alliance partner?
+A: Honestly, ask yourself what you need — if it's consistent scoring on all three goals and a partner who can adapt mid-match, that's where we're strong. If you need something else, might not be the best fit and that's fine.
+
+Notice: short, plain sentences, specific numbers when known, no exclamation-mark hype, and a willingness to say "not our strongest" or redirect the question back to what the person actually needs.
+
+CONVERSATION RULES:
+- Always read the full conversation history before responding
+- Reference earlier messages naturally: "As you mentioned...", "Going back to your question about...", "Since you're team 1234..."
+- Never repeat info already given unless asked
+- If someone asks a follow-up like "tell me more" or "what about that?" — know what they're referring to from context
+- Match the person's tone and energy throughout the whole conversation
+
+KNOWN FACTS:
+- Team: 1831M, known as "King's Team Mike" from The King's School, North Parramatta, NSW, Australia
+- The "1831" is the year The King's School was founded. All King's School robotics teams use 1831 as their base number, with a letter to identify each team (1831A, 1831B, 1831M etc). The M stands for Mike — that's how Mike Wazowski became the mascot, not the other way around.
+- The team is specifically 1831M. Do not mention other King's teams unless asked directly.
+- Program: VEX Robotics Competition V5RC
+- Robot scores on all 3 goals, can park and double-park
+- Uses the SCARE engineering process: S = Spot the Problem, C = Create Ideas, A = Assess the best, R = Realise it (build it), E = Experiment and Refine. Named after Mike Wazowski. Exactly 5 steps — do NOT change or add to them.
+- AWARDS HISTORY (exact — use these events/dates, do not merge or generalise):
+  • Excellence Award (V5) — 2026-2027 Override season, Override Tournament @ Shore [RE-V5RC-26-4664], NSW
+  • Excellence Award (V5) — 2025-2026 Push Back season, Invitational Blended V5RC @ The King's School [RE-V5RC-25-2210], NSW - Sydney
+  • Tournament Champions (V5) — 2025-2026 Push Back season, Invitational Blended V5RC @ The King's School [RE-V5RC-25-2210], NSW - Sydney
+  • Create Award (V5) — 2025-2026 Push Back season, Blended Tournament @ The King's School [RE-V5RC-25-0772], NSW - Sydney
+  • Innovate Award (V5) — 2025-2026 Push Back season, Santa Sabina Tournament (VRC Middle School) [RE-V5RC-25-0679], NSW
+  • Build Award (V5) — 2025-2026 Push Back season, NSW Middle School State Championships 2025 @ Knox Grammar School [RE-V5RC-25-2067]
+  • Awards to date: 2x Excellence, 1x Tournament Champions, 1x Create, 1x Innovate, 1x Build Award
+- Made eliminations at the 2024 and 2026 Australian National Championships (2 years, not 3)
+- 2026 Australian National Championships — qualified 17th, alliance partner in eliminations was 79419N. Won R16 #2-1 vs 4613W & 13818X with score 106-11. Lost QF #1-1 vs 85659A & 4613R with score 34-64.
+- Good at adapting strategies to suit alliance partners
+- Contact: 1831mike@gmail.com | ${SITE}
+- TEAM MEMBERS (first names only — never share last names even if asked; say you keep last names private):
+  • Aathavan — Project Manager
+  • Paco — Project Manager
+  • Ryan — Builder
+  • Elie — Programmer
+  • Isaac — Programmer
+  • Ali — Driver
+  • Christian — Strategy
+- TEAM ROSTER (exact names and roles — use these, don't guess or invent roles):
+  • Aathavan Selvaratnam — Project Manager
+  • Paco Liu — Project Manager
+  • Ryan Zhou — Builder
+  • Elie Lu — Programmer
+  • Isaac Ung — Programmer
+  • Ali Sarangpurwala — Driver
+  • Christian Hippmann — Strategy
+
+VEX MATCH TERMINOLOGY — know these inside out:
+ROUND TYPES:
+- Qualifier / Q# = Qualification match (regular season matches, everyone plays these)
+- QF = Quarter Finals (top 8 alliances, elimination round)
+- SF = Semi Finals (top 4 alliances, elimination round)
+- F = Finals (top 2 alliances, championship match)
+- R16 = Round of 16 (top 16 alliances, elimination round at large events)
+- Skills = Robot Skills / Programming Skills (individual timed runs, not head-to-head)
+
+MATCH FORMAT (each match has 2 alliances of 2 teams):
+- Each row = one match, format: [Event Name] Round MatchNum: Team1+Team2 Score vs Team3+Team4 Score (WIN/LOSS/TIE)
+- The WIN/LOSS/TIE label is already computed from 1831M's perspective — trust it directly, don't recompute from scores yourself
+- The two teams joined by "+" = alliance partners for that match
+- Scores shown are total alliance scores (both robots combined)
+
+ELIMINATION BRACKET NAMING (e.g. "QF #1-1"):
+- First number = which bracket/matchup (e.g. QF #1 = quarterfinal bracket 1)
+- Second number = which game in that series (best of 3, so #1-1, #1-2, possibly #1-3)
+- R16 #2-1 = Round of 16, bracket 2, game 1
+
+RANKINGS explained:
+- WP = Win Points (main ranking metric, 2 per win, 1 per tie, 0 per loss)
+- AP = Autonomous Points (bonus from winning autonomous period)
+- SP = Strength of Schedule Points (average losing alliance score — rewards tough schedule)
+- Rank = position on the leaderboard at that event
+
+ALLIANCE SELECTION (after qualifications):
+- Top 8 ranked teams become "alliance captains" and pick 1 partner each
+- Higher ranked captains pick first
+- This forms the 8 alliances that compete in eliminations
+BEFORE EVERY RESPONSE — run this internal checklist:
+1. Does every specific fact I'm about to say appear in the live data OR known facts above?
+2. Am I about to mention a score, partner, ranking, placement, date or award? → confirm it's in the data word for word
+3. Am I filling a gap with something that "sounds right"? → stop, remove it
+4. Am I about to say an alliance had more than 1 partner? → impossible in VEX, fix it
+5. Am I using words like "three years", "multiple times", "consistently", "always", "every"? → check the exact number against known facts. "2024 and 2026" = 2 years, not 3.
+6. If I can't verify something → say "I don't have that detail, check the VEX Events page for team 1831M"
+Do this silently — never mention the checklist to the user.
+- If asked something specific (match score, partner, ranking, placement) and the data doesn't have it → say "I don't have that specific detail — check the VEX Events page for team 1831M for the full breakdown"
+- NEVER invent placements, scores, partners, dates or results
+- If live data is not appended, say "I don't have live match data right now" rather than guessing
+- VEX alliance = exactly 2 teams total (1831M + 1 partner). Never say a team had multiple alliance partners in the same match — that is impossible
+- DOUBLE-CHECK: before stating any specific fact, verify it is in the live data. If uncertain, say so rather than guessing
+
+LIVE DATA: Every match 1831M has played is listed below with exact scores, alliance partners, round types, and win/loss results. Use it to answer specific questions. Always prefer this over anything else.
+
+FORMATTING — the chat renders HTML, so use it when it helps:
+- Bold: <strong>text</strong> — use for key terms, team names, scores, round names
+- Italic: <em>text</em> — use for emphasis or event names
+- Dot points: use • with a line break (<br>) between each point — only when listing 3+ items
+- Never use markdown (no **, no *, no ##) — it will show as raw symbols
+- Keep formatting minimal — only use it when it genuinely helps readability, not on every response
+- 2-4 sentences normally, more only if asked
+- Never use bullet points, headers, bold text or document-style formatting — just talk naturally
+- Never sound scripted, narcissistic or like a marketing brochure
+- For alliance questions → be humble and practical, focus on what WE bring to THEM not how great we are. Ask what competition they're at and what they need from a partner
+- Don't give generic alliance "plans" or "strategies" unprompted — ask questions first to understand what they need
+- Soft CTAs: "Want me to...", "Would it help if...", "I can show you..."
+- If they share team number/name → use it in future replies
+- Keep it conversational, like a teammate talking to another team at an event`;
+
+const P = {
+  greeting: {
+    msg: "Hi! 👋 Welcome to 1831M Robotics. I'm here to help — whether you're curious about the team, thinking about alliances, or want to know more about us.",
+    btns: ["Who is 1831M?", "Why 1831M?", "Our awards", "Get in touch"]
+  },
+  whoAreWe: {
+    msg: "1831M is a student robotics team from The King's School, North Parramatta. We focus on consistent match performance, iterative engineering using our 'Scare' process, and rehearsed alliance strategies.\n\nWe score on all 3 goals, park and double-park, and have won multiple awards — check <a href='https://www.1831m.com' target='_blank'>1831m.com</a> for our latest achievements. What would be most useful right now?",
+    btns: ["Why pick us?", "Alliance selection", "Our awards", "Talk to someone"]
+  },
+  whyPickUs: {
+    msg: "We score on all 3 goals consistently, park and double-park, and we're good at adapting our strategy to work with our alliance partner. We've made eliminations at nationals twice (2024 and 2026) and have a few awards to our name. What are you looking for in an alliance?",
+    btns: ["Our awards", "Plan an alliance", "Talk to someone"]
+  },
+  awards: {
+    msg: "Here's our award history:\n\n• <strong>Excellence Award (V5)</strong> — Override Tournament @ Shore, 2026-2027 season\n• <strong>Excellence Award (V5)</strong> & <strong>Tournament Champions (V5)</strong> — Invitational Blended V5RC @ The King's School, 2025-2026 season\n• <strong>Create Award (V5)</strong> — Blended Tournament @ The King's School, 2025-2026 season\n• <strong>Innovate Award (V5)</strong> — Santa Sabina Tournament (Middle School), 2025-2026 season\n• <strong>Build Award (V5)</strong> — NSW Middle School State Championships 2025 @ Knox Grammar School\n\n🔄 We're always adding to this — check <a href='https://www.1831m.com' target='_blank'>1831m.com</a> for the most up-to-date list!",
+    btns: ["Why pick us?", "Plan an alliance", "Talk to someone", "Main menu"]
+  },
+  alliance: {
+    msg: "We score on all 3 goals, park and double-park, and arrive with rehearsed strategies we can present or adapt on the day.\n\nWhich competition are you targeting, and what role are you looking for?",
+    btns: ["Scoring role", "Support role", "Flexible", "Talk to a team member"]
+  },
+  allianceOutline: {
+    msg: "Here's how we typically structure it:\n\n• <strong>1831M handles:</strong> Scoring on all 3 goals, parking/double-parking\n• <strong>Partner handles:</strong> Complementary role — we adapt to your strengths\n• <strong>Strategy:</strong> Rehearsed plans, adjustable on the day\n\nWant a written summary or a quick call with a team member?",
+    btns: ["Get written summary", "Talk to someone", "Main menu"]
+  },
+  summary: {
+    msg: "Quick rundown — we score on all 3 goals, park and double-park, and we're used to working closely with alliance partners on strategy. We've made eliminations at nationals the last few years and picked up a few awards along the way.\n\n📧 <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a>\n🌐 <a href='https://www.1831m.com' target='_blank'>1831m.com</a>",
+    btns: ["Plan an alliance", "Talk to someone", "Main menu"]
+  },
+  scare: {
+    msg: "SCARE is our engineering process — and yes, it really does spell it out! S = Spot the Problem, C = Create Ideas, A = Assess the best solution, R = Realise it (build it), E = Experiment and Refine. We named it after Mike Wazowski, and it's how we iterate fast and stay consistent under pressure. 👁️",
+    btns: ["Why pick us?", "Plan an alliance", "Main menu"]
+  },
+  contact: {
+    msg: "Reach us at <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a> and we'll get back to you ASAP.\n\nOr I can connect you with a team member right now — would that help?",
+    btns: ["Connect me now", "Main menu"]
+  },
+  humanCollect: {
+    msg: "Great! To get the right person to follow up, could you share:\n\n1. Your name\n2. Your team number\n3. Best email to reach you\n\nJust type it below 👇",
+    btns: []
+  },
+  humanConfirm: {
+    msg: "Thanks! A team member will follow up with you shortly. You can also email directly: <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a> or visit <a href='https://www.1831m.com' target='_blank'>1831m.com</a>. 👍",
+    btns: ["Main menu"]
+  }
+};
+
+// SPEED: known-question shortcuts — skip the AI entirely for things we already
+// have a perfect canned answer for (same info the quick-reply buttons give).
+// Kept deliberately narrow to avoid misfiring on genuine live-data questions.
+const INTENT_SHORTCUTS = [
+  { key: 'awards',   patterns: [/\bawards?\b/, /\btrophy|trophies\b/, /\bwhat.*(have you|has 1831).*(won|win)\b/] },
+  { key: 'whyPickUs', patterns: [/\bwhy (pick|choose) (you|1831)/, /\bwhy should we (pick|choose|use|take)/, /\bwhat makes (you|1831m)/, /\bsecret sauce\b/] },
+  { key: 'whoAreWe', patterns: [/\bwho (are|is) (you|1831m)\b/, /\btell me about (yourself|the team|1831m)\b/, /\babout (the )?team\b/] },
+  { key: 'contact',  patterns: [/\bcontact\b/, /\bemail address\b/, /\bhow (do|can) i (contact|reach|email)/, /\bget in touch\b/] },
+  { key: 'scare',    patterns: [/\bscare\b/, /\bengineering process\b/, /\bmike wazowski\b/] },
+];
+
+function matchIntentShortcut(t) {
+  for (const s of INTENT_SHORTCUTS) {
+    if (s.patterns.some(p => p.test(t))) return s.key;
+  }
+  return null;
+}
+
+// Strip HTML tags for storing in conversation history (AI only needs plain text context)
+function stripTags(html) {
+  return html.replace(/<[^>]+>/g, '').replace(/\s+/g,' ').trim();
+}
+
+let history = [], busy = false;
+let pageContext = { sectionId: 'home', title: 'Home', description: 'The 1831M website home page.' };
+window.addEventListener('message', e => {
+  if (e.data?.type !== '1831m-context') return;
+  pageContext = {
+    sectionId: String(e.data.sectionId || 'home'),
+    title: String(e.data.title || 'Home'),
+    description: String(e.data.description || '')
+  };
+});
+let leadStep = 0, leadData = {};
+let liveData = '';
+
+async function submitLead(data) {
+  try {
+    const res = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_key: 'f0b9f5e1-37ee-4994-8d11-592c4a0e50ff',
+        subject: `1831M Alliance Enquiry — ${data.team || 'Unknown Team'}`,
+        name: data.name,
+        email: data.email,
+        message: `Name: ${data.name}\nTeam: ${data.team}\nEmail: ${data.email}\nMessage: ${data.message || 'No message'}\n\nSent from 1831M chatbot`
+      })
+    });
+    const j = await res.json();
+    return j.success;
+  } catch(e) {
+    console.warn('Web3Forms error:', e);
+    return false;
+  }
+}
+
+async function handleLeadStep(text) {
+  addUsr(text);
+  if (leadStep === 1) {
+    leadData.name = text;
+    leadStep = 2;
+    setTimeout(() => {
+      addBot("What's your team number?");
+    }, 400);
+  } else if (leadStep === 2) {
+    leadData.team = text;
+    leadStep = 3;
+    setTimeout(() => {
+      addBot("And your email address so we can follow up?");
+    }, 400);
+  } else if (leadStep === 3) {
+    leadData.email = text;
+    leadStep = 4;
+    setTimeout(() => {
+      addBot("What would you like to discuss? Pick one or type your own:");
+      renderBtns(["Just wanting to connect", "Alliance strategy", "Upcoming competition", "General enquiry"]);
+    }, 400);
+  } else if (leadStep === 4) {
+    leadData.message = text;
+    const emailCopy = leadData.email;
+    leadStep = 0;
+    showT();
+    const ok = await submitLead(leadData);
+    hideT();
+    leadData = {};
+    if (ok) {
+      addBot(`Done! We'll get back to you at <strong>${escapeHtml(emailCopy)}</strong> soon. You can also reach us directly at <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a> 👍`);
+      history.push({role:'assistant', content:'Lead submitted successfully.'});
+    } else {
+      addBot(`Hmm, something went wrong sending that. Email us directly at <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a> and we'll get back to you!`);
+    }
+    renderBtns(['Main menu']);
+  }
+}
+
+// Fetch VEX Events live data via Netlify serverless function.
+// (Calling the VEX Events API directly from browser JS hits CORS restrictions,
+// so the actual API call happens server-side in netlify/functions/teamdata.js —
+// see that file, which now uses the VEX Events API token instead of the old one.)
+(async function fetchRE() {
+  try {
+    console.log('🔄 Fetching VEX Events data...');
+    const r = await fetch('/.netlify/functions/teamdata');
+    if (!r.ok) { console.warn('❌ VEX Events fetch failed:', r.status); return; }
+    const j = await r.json();
+    if (j.summary) {
+      liveData = j.summary;
+      console.log('✅ VEX Events data loaded! Length:', liveData.length, 'chars');
+      console.log('📊 Preview:', liveData.substring(0, 300));
+    } else if (j.error) {
+      console.warn('❌ VEX Events error:', j.error);
+    }
+  } catch(e) { console.warn('❌ VEX Events fetch exception:', e.message); }
+})();
+
+const $=id=>document.getElementById(id);
+const $W=$('win'),$M=$('msgs'),$I=$('inp'),$S=$('sbtn'),$Q=$('qr');
+const AV=`<svg class="bav" viewBox="0 0 100 100"><use href="#mike"/></svg>`;
+
+$S.onclick=()=>handleInput($I.value.trim());
+$I.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();handleInput($I.value.trim());}};
+
+let open=false;
+function addWelcome(){
+  const d=document.createElement('div'); d.className='welcome-card';
+  d.innerHTML=`<img src="assets/team-mike.jpg" alt="1831M team with their robot"/><div class="welcome-card-copy"><small>KING'S TEAM MIKE · 1831M</small><strong>Built by students. Refined through testing.</strong><span>Ask about who we are, why we build, the robot, SCARE, awards, or alliance strategy.</span><div class="welcome-gallery"><img src="assets/match-floor.png" alt="1831M robot and team"/><img src="assets/team-mike.jpg" alt="1831M competition team"/></div></div>`;
+  $M.appendChild(d); $M.scrollTop=$M.scrollHeight;
+}
+function toggle(){
+  open=!open; $W.classList.toggle('open',open);
+  if(open&&!$M.children.length){ setTimeout(()=>{ addWelcome(); addBot(P.greeting.msg); renderBtns(P.greeting.btns); },250); }
+}
+
+// Auto open on load
+setTimeout(()=>{ if(!open) toggle(); }, 100);
+
+function addBot(html,isHuman){
+  const d=document.createElement('div');
+  d.className=isHuman?'msg human':'msg bot';
+  const txt=html.replace(/\n/g,'<br>');
+  if(isHuman){ d.innerHTML=`${AV}<div><div class="human-label">TEAM MEMBER</div><div class="bbl">${txt}</div></div>`; }
+  else { d.innerHTML=`${AV}<div class="bbl">${txt}</div>`; }
+  $M.appendChild(d); $M.scrollTop=$M.scrollHeight;
+  return d.querySelector('.bbl');
+}
+function addUsr(t){
+  const d=document.createElement('div');d.className='msg usr';
+  d.innerHTML=`<div class="bbl">${t.replace(/</g,'&lt;')}</div>`;
+  $M.appendChild(d);$M.scrollTop=$M.scrollHeight;
+}
+function showT(checking=false){
+  const d=document.createElement('div');d.className='msg bot';d.id='ty';
+  const badge=checking?`<div class="checking-badge">Checking 1831m.com for latest info…</div>`:'';
+  d.innerHTML=`${AV}<div><div>${badge}</div><div class="bbl" style="padding:0"><div class="tdots"><span></span><span></span><span></span></div></div></div>`;
+  $M.appendChild(d);$M.scrollTop=$M.scrollHeight;
+}
+function hideT(){const t=document.getElementById('ty');if(t)t.remove();}
+
+function renderBtns(labels){
+  $Q.innerHTML='';
+  if(!labels||!labels.length)return;
+  labels.forEach(label=>{
+    const b=document.createElement('button');b.className='qb';
+    if(label.toLowerCase().includes('talk')||label.toLowerCase().includes('connect')||label.toLowerCase().includes('someone'))b.classList.add('soft');
+    if(label.toLowerCase().includes('yes')||label.toLowerCase().includes('summary'))b.classList.add('green');
+    b.textContent=label;
+    b.onclick=()=>{$Q.innerHTML='';handleButton(label);};
+    $Q.appendChild(b);
+  });
+}
+
+function handleButton(label){
+  if(leadStep > 0){ handleLeadStep(label); return; }
+  history.push({role:'user', content: label});
+  addUsr(label);
+  const l=label.toLowerCase(), d=420;
+  if(l.includes('main menu')){history.push({role:'assistant',content:P.greeting.msg});setTimeout(()=>{addBot(P.greeting.msg);renderBtns(P.greeting.btns);},d);return;}
+  if(l.includes('talk')||l.includes('connect')||l.includes('someone')||l.includes('get in touch')){
+    setTimeout(()=>{
+      addBot("Sure! Let's get you connected. What's your name?");
+      history.push({role:'assistant', content:'Starting lead collection.'});
+      leadStep = 1; leadData = {};
+    }, d);
+    return;
+  }
+  handleAI(label);
+}
+
+async function handleInput(text){
+  if(!text||busy)return;
+  $Q.innerHTML='';$I.value='';
+
+  if(leadStep > 0){
+    await handleLeadStep(text);
+    return;
+  }
+
+  addUsr(text);
+  history.push({role:'user',content:text});
+
+  const t=text.toLowerCase().trim();
+
+  if(['hi','hey','hello','hiya','sup','yo','g\'day'].includes(t)){
+    const reply = "Hey! 👋 What can I help you with?";
+    addBot(reply);
+    history.push({role:'assistant',content:reply});
+    renderBtns(['Who is 1831M?','Alliance selection','Our awards','Get in touch']);
+    return;
+  }
+
+  if(t.includes('human')||t.includes('talk to')||t.includes('call')||t.includes('speak to')){
+    addBot("Sure! Let's get you connected. What's your name?");
+    history.push({role:'assistant', content:'Starting lead collection.'});
+    leadStep = 1;
+    leadData = {};
+    return;
+  }
+
+  // SPEED: instant canned answer for known questions — no AI call needed
+  const shortcutKey = matchIntentShortcut(t);
+  if (shortcutKey) {
+    const entry = P[shortcutKey];
+    addBot(entry.msg);
+    history.push({role:'assistant', content: stripTags(entry.msg)});
+    renderBtns(entry.btns);
+    return;
+  }
+
+  await handleAI(text, true);
+}
+
+// SMART CONTEXT (item 7): decide how much conversation history to send per
+// call. Short conversations just send everything. Long ones send MORE
+// context only when the latest message seems to reference earlier
+// conversation (pronouns like "that", "it", "again", "you said"...);
+// otherwise just the recent messages, since a fresh standalone question
+// rarely needs the whole back-and-forth. This varies per message — it isn't
+// a fixed cutoff.
+function needsFullContext(t) {
+  return /\b(that|this|it|again|earlier|before|same|also|those|these)\b/i.test(t)
+      || /\byou (said|mentioned)\b/i.test(t)
+      || /^(and|but|ok(ay)?|so|what about|also)\b/i.test((t||'').trim());
+}
+
+function buildContextWindow() {
+  const orientation = {role:'system', content:`VISITOR VIEW CONTEXT (orientation only): The visitor is currently viewing the “${pageContext.title}” section of the 1831M website. ${pageContext.description} Use this only when it helps answer naturally; do not claim the visitor asked about this section, and do not invent facts from it.`};
+  if (history.length <= 6) return [orientation, ...history]; // short conversation — just send it all
+  const lastUser = [...history].reverse().find(m => m.role === 'user');
+  const t = (lastUser?.content || '').toLowerCase();
+  if (needsFullContext(t)) {
+    console.log('🧠 Referential question — sending extended context (last 20 msgs)');
+    return [orientation, ...history.slice(-20)];
+  }
+  console.log('🧠 Standalone question — sending recent context only (last 6 msgs)');
+  return [orientation, ...history.slice(-6)];
+}
+
+// Extract specific facts (numbers, team numbers, proper nouns) from a response
+function extractFacts(text) {
+  const teams = text.match(/\b\d{3,5}[A-Z]\b/g) || [];
+  const scores = text.match(/\b\d{1,3}-\d{1,3}\b/g) || [];
+  const years = text.match(/\b20\d{2}\b/g) || [];
+  const rounds = text.match(/\b(QF|SF|R16|Finals?|Qualifier)\s*#?\d*/gi) || [];
+  return [...teams, ...scores, ...years, ...rounds].map(f => f.toLowerCase());
+}
+
+function factsMatch(a, b) {
+  const fa = extractFacts(a), fb = extractFacts(b);
+  for (const f of fa) {
+    if (fb.length && !fb.includes(f) && fb.some(x => x.match(/\d/))) return false;
+  }
+  return true;
+}
+
+// Non-streaming OpenRouter call — used for stream-fallback retries and the judge
+async function getReply(keyIndex=0) {
+  try {
+    const res = await fetch(CHAT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        keyIndex,
+        messages: [
+          {role:'system',content:SYS + (liveData ? '\n\nLIVE VEX EVENTS DATA:\n' + liveData : '')},
+          ...buildContextWindow()
+        ]
+      })
+    });
+    console.log(`🤖 Chat proxy (key ${keyIndex}): ${res.status}`);
+    if (!res.ok) return { ok: false, status: res.status };
+    return await res.json();
+  } catch(e) {
+    console.warn('❌ Chat proxy threw:', e.message);
+    return { ok: false, status: 'exception' };
+  }
+}
+
+// SPEED (item 2): streams the reply in as it's generated instead of waiting
+// for the whole thing. Falls back to non-streaming getReply() on any failure.
+async function streamReply() {
+  try {
+    const res = await fetch(CHAT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        keyIndex: 0,
+        stream: true,
+        messages: [
+          {role:'system',content:SYS + (liveData ? '\n\nLIVE VEX EVENTS DATA:\n' + liveData : '')},
+          ...buildContextWindow()
+        ]
+      })
+    });
+    if (!res.ok || !res.body) return { ok:false, status: res.status };
+
+    hideT();
+    const bubbleEl = addBot('');
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '', fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith('data:')) continue;
+        const payload = trimmed.slice(5).trim();
+        if (payload === '[DONE]' || !payload) continue;
+        try {
+          const json = JSON.parse(payload);
+          const delta = json.choices?.[0]?.delta?.content || '';
+          if (delta) {
+            fullText += delta;
+            bubbleEl.innerHTML = formatReply(fullText);
+            $M.scrollTop = $M.scrollHeight;
+          }
+        } catch(e) { /* ignore partial/malformed SSE chunk */ }
+      }
+    }
+
+    if (!fullText) { bubbleEl.closest('.msg')?.remove(); return { ok:false, status:'empty' }; }
+    if (/^\s*(User Safety|Response Safety)\s*:/im.test(fullText)) {
+      bubbleEl.closest('.msg')?.remove();
+      return { ok:false, status:'classifier_response' };
+    }
+    return { ok:true, text: fullText, bubbleEl };
+  } catch(e) {
+    console.warn('❌ Stream failed:', e.message);
+    return { ok:false, status:'exception' };
+  }
+}
+
+// Second "primary" — routed through our own Gemini proxy function (key stays server-side)
+async function getGeminiReply(answerBeingChecked = '') {
+  // Gemini 3.5 Flash-Lite requires the final GenerateContent turn to be a
+  // user turn. The main OpenRouter answer has already been appended to history
+  // before background checking starts, so remove that trailing assistant turn.
+  // Also omit the website-orientation system message; SYS is sent separately
+  // as Gemini's systemInstruction.
+  const context = buildContextWindow().filter(m => m.role !== 'system');
+  if (context.length && context[context.length - 1].role === 'assistant' &&
+      (!answerBeingChecked || context[context.length - 1].content === answerBeingChecked)) {
+    context.pop();
+  }
+  // Gemini conversations should start and finish on a visitor turn.
+  while (context.length && context[0].role === 'assistant') context.shift();
+  while (context.length && context[context.length - 1].role === 'assistant') context.pop();
+  const contents = context.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+  if (!contents.length || contents[contents.length - 1].role !== 'user') {
+    return { ok: false, status: 'no_user_turn_for_gemini' };
+  }
+  try {
+    const res = await fetch(GEMINI_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemPrompt: SYS + `\n\nVISITOR VIEW CONTEXT: The visitor is viewing the “${pageContext.title}” section. ${pageContext.description}` + (liveData ? '\n\nLIVE VEX EVENTS DATA:\n' + liveData : ''),
+        contents
+      })
+    });
+    console.log(`🤖 Gemini proxy: ${res.status}`);
+    if (!res.ok) return { ok: false, status: res.status };
+    return await res.json();
+  } catch(e) {
+    console.warn('❌ Gemini proxy threw:', e.message);
+    return { ok: false, status: 'exception' };
+  }
+}
+
+// SMART FACT-CHECK (item 4): instead of guessing upfront whether a question
+// needs verification, we answer fast first, then only double-check in the
+// background if the answer actually contains a checkable fact (a team
+// number, score, year, or round). Purely conversational replies never
+// trigger this — that's what makes the common case fast.
+async function verifyInBackground(text, bubbleEl) {
+  try {
+    const r2 = await getGeminiReply(text);
+    if (!r2.ok) { console.log('🧪 Background check: Gemini unavailable, leaving answer as-is'); return; }
+    if (factsMatch(text, r2.text)) { console.log('✅ Background check: facts confirmed'); return; }
+
+    console.warn('⚠️ Background fact mismatch — asking judge...');
+    let judgeChoice = null;
+    try {
+      const judgeRes = await fetch(CHAT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          judge: true,
+          messages: [{
+            role: 'user',
+            content: `You are a fact checker. Based on this reference data:\n${liveData}\n\nWhich response has more accurate facts — respond with ONLY "1" or "2" or "unclear".\n\nResponse 1: ${text.substring(0,500)}\n\nResponse 2: ${r2.text.substring(0,500)}`
+          }]
+        })
+      });
+      if (judgeRes.ok) {
+        const jd = await judgeRes.json();
+        const verdict = (jd.text || '').trim().toLowerCase();
+        console.log('⚖️ AI judge verdict:', verdict);
+        if (verdict.includes('1')) judgeChoice = '1';
+        else if (verdict.includes('2')) judgeChoice = '2';
+      }
+    } catch(e) {
+      console.warn('⚖️ Judge failed:', e.message);
+    }
+
+    if (judgeChoice === '2') {
+      console.warn('✏️ Judge picked the verified answer — correcting the displayed reply');
+      bubbleEl.innerHTML = formatReply(r2.text) + `<div class="corrected-note">✏️ Updated for accuracy</div>`;
+      for (let i = history.length - 1; i >= 0; i--) {
+        if (history[i].role === 'assistant' && history[i].content === text) { history[i].content = r2.text; break; }
+      }
+    } else {
+      console.log('✅ Judge kept the original answer (or unclear) — no change shown');
+    }
+  } catch(e) {
+    console.warn('Background verification failed:', e.message);
+  }
+}
+
+async function handleAI(text, alreadyAdded=false){
+  if(busy)return;
+  busy=true;$S.disabled=true;
+  showT(false);
+
+  try {
+    let result = await streamReply();
+
+    if (!result.ok) {
+      console.warn('⚠️ Stream failed, retrying with a different key (non-streaming)...');
+      const retry = await getReply(3);
+      if (!retry.ok) {
+        // Gemini is also a real response fallback, not only a background fact checker.
+        // It uses the same private Netlify-hosted GEMINI_API_KEY.
+        const backup = await getGeminiReply();
+        hideT();
+        if (!backup.ok || !backup.text) {
+          addBot(`Hmm, having trouble connecting. Try again or email <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a>.`);
+          busy=false;$S.disabled=false;$I.focus();
+          return;
+        }
+        const bubbleEl = addBot(formatReply(backup.text));
+        result = { ok:true, text: backup.text, bubbleEl, source:'gemini' };
+      } else {
+        hideT();
+        const bubbleEl = addBot(formatReply(retry.text));
+        result = { ok:true, text: retry.text, bubbleEl };
+      }
+    }
+
+    history.push({role:'assistant',content:result.text});
+    if(history.length>40) history=history.slice(-40);
+    setTimeout(()=>renderBtns(['Plan an alliance','Our awards','Talk to someone','Main menu']),300);
+    busy=false;$S.disabled=false;$I.focus();
+
+    // Only spend a second call double-checking answers that actually assert
+    // specific facts — most casual replies skip this entirely.
+    if (result.source !== 'gemini' && extractFacts(result.text).length > 0) {
+      verifyInBackground(result.text, result.bubbleEl);
+    }
+  } catch(e) {
+    hideT();
+    addBot("Network error — check your connection or email <a href='mailto:1831mike@gmail.com'>1831mike@gmail.com</a>.");
+    busy=false;$S.disabled=false;$I.focus();
+  }
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+function formatReply(raw) {
+  // Escape first so any HTML/script the model echoes back (e.g. from live
+  // third-party VEX Events data, or a user's message) becomes inert text —
+  // only THEN do we re-introduce the specific safe tags we intend.
+  return escapeHtml(raw)
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^#{1,3} (.+)$/gm,'<strong>$1</strong>')
+    .replace(/^[-•] (.+)$/gm,'• $1')
+    .replace(/\n\n/g,'<br><br>')
+    .replace(/\n/g,'<br>');
+}
+</script>
+</body>
+</html>
