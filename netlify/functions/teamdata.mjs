@@ -53,7 +53,10 @@ function buildSummary(team, rankings, awards, matches) {
   if (awards.length) {
     lines.push(`AWARDS (${awards.length} total):`);
     awards.forEach((award, index) => {
-      lines.push(`${index + 1}. ${award.title} — ${cleanEventName(award.event && award.event.name)}`);
+      const event = award.event || {};
+      const eventCode = event.code || event.sku || "";
+      const seasonName = event.season && event.season.name ? event.season.name : "";
+      lines.push(`${index + 1}. ${award.title} — ${cleanEventName(event.name)}${eventCode ? " [" + eventCode + "]" : ""}${seasonName ? " — " + seasonName : ""}`);
     });
     lines.push("");
   }
