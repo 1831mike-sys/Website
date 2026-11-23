@@ -212,7 +212,13 @@ CURRENT SEASON — 2026–2027 VEX V5RC OVERRIDE (7 awards; do not omit any):
 • Robot Skills Champion (V5) — Override League @ The King's School [RE-V5RC-26-5090]
 • Excellence Award - Middle School (V5) — Override League @ The King's School [RE-V5RC-26-5090]
 • Design Award (V5) — NSW Middle School State Championships @ Knox Grammar School [VE-V5-26-66512]
-Current-season total: 7 awards across 6 events. Count them individually; the King's School league event has TWO awards.
+Current-season total: 7 awards across 6 events.
+IMPORTANT EVENT DISTINCTION — answer accurately:
+• The ONLY single event that gave 1831M two awards is Override League @ The King's School [RE-V5RC-26-5090]: Robot Skills Champion + Excellence Award - Middle School.
+• Knox Grammar School Override Tournament [RE-V5RC-26-5245] gave Excellence Award - Middle School.
+• A DIFFERENT Knox Grammar School Override Tournament [RE-V5RC-26-5244] gave Design Award. These are separate event records and MUST NOT be combined just because they share the venue.
+• The NSW Middle School State Championships [VE-V5-26-66512] is another separate event and gave Design Award.
+If asked "which event gave us two awards?", answer ONLY: Override League @ The King's School [RE-V5RC-26-5090]. Do not say Knox Grammar had two awards at one event.
 
 PREVIOUS SEASON — 2025–2026 VEX V5RC PUSH BACK:
 • Excellence Award (V5) — Invitational Blended V5RC @ The King's School [RE-V5RC-25-2210]
@@ -246,6 +252,8 @@ The team knowledge also records 2 Excellence Awards in this season overall; the 
 LIVE VEX DATA RULES:
 - The live VEX Events feed includes awards, rankings and matches across multiple seasons. Never describe every item in that feed as a current-season result.
 - For 2026–2027 Override questions, use the seven-item current-season list above and match the event codes exactly.
+- Treat every event code as a separate event, even when the venue is the same. Never merge RE-V5RC-26-5244, RE-V5RC-26-5245, and VE-V5-26-66512 into one Knox event.
+- When asked which single event gave two awards, answer Override League @ The King's School [RE-V5RC-26-5090] only.
 - Event codes containing "-26-" in the team page's current Override award list belong to 2026–2027; codes containing "-25-" are previous Push Back season.
 - For an all-time awards question, keep seasons separate and never merge awards into one event.
 - If live data and the verified season list appear to conflict, explain the discrepancy rather than guessing or silently mixing seasons.
@@ -327,7 +335,7 @@ const P = {
     btns: ["Our awards", "Plan an alliance", "Talk to someone"]
   },
   awards: {
-    msg: "Our 2026–2027 Override season awards are:\n\n• <strong>Excellence Award (V5)</strong> — Shore Tournament\n• <strong>Excellence Award - Middle School (V5)</strong> — UNSW RCC Tournament\n• <strong>Excellence Award - Middle School (V5)</strong> — Knox Grammar School Tournament (RE-V5RC-26-5245)\n• <strong>Design Award (V5)</strong> — Knox Grammar School Tournament (RE-V5RC-26-5244)\n• <strong>Robot Skills Champion (V5)</strong> — The King's School League\n• <strong>Excellence Award - Middle School (V5)</strong> — The King's School League\n• <strong>Design Award (V5)</strong> — NSW Middle School State Championships\n\nThat's 7 awards across 6 events this season. Want the previous season's awards too?",
+    msg: "Our 2026–2027 Override season awards are:\n\n• <strong>Excellence Award (V5)</strong> — Shore Tournament (RE-V5RC-26-4664)\n• <strong>Excellence Award - Middle School (V5)</strong> — UNSW RCC Tournament (RE-V5RC-26-4533)\n• <strong>Excellence Award - Middle School (V5)</strong> — Knox Grammar School Tournament (RE-V5RC-26-5245)\n• <strong>Design Award (V5)</strong> — a separate Knox Grammar School Tournament (RE-V5RC-26-5244)\n• <strong>Robot Skills Champion (V5)</strong> — The King's School League (RE-V5RC-26-5090)\n• <strong>Excellence Award - Middle School (V5)</strong> — The King's School League (RE-V5RC-26-5090)\n• <strong>Design Award (V5)</strong> — NSW Middle School State Championships (VE-V5-26-66512)\n\nThat's 7 awards across 6 events this season. The ONLY single event with two awards was The King's School League (RE-V5RC-26-5090). The two Knox tournaments are separate events, not one event. Want the previous season's awards too?",
     btns: ["Why pick us?", "Plan an alliance", "Talk to someone", "Main menu"]
   },
   alliance: {
@@ -364,7 +372,7 @@ const P = {
 // have a perfect canned answer for (same info the quick-reply buttons give).
 // Kept deliberately narrow to avoid misfiring on genuine live-data questions.
 const INTENT_SHORTCUTS = [
-  { key: 'awards',   patterns: [/\b(our|your|list|show|full|all)\s+awards?\b/, /\btrophy|trophies\b/, /\bwhat.*(have you|has 1831).*(won|win)\b/] },
+  { key: 'awards',   patterns: [/\b(list|show|tell me|what are|what were|our|all|full)\b.*\bawards?\b/, /\b(list|show|tell me|our|all|full)\b.*\btroph(?:y|ies)\b/, /\bwhat.*(have you|has 1831).*(won|win)\b/] },
   { key: 'whyPickUs', patterns: [/\bwhy (pick|choose) (you|1831)/, /\bwhy should we (pick|choose|use|take)/, /\bwhat makes (you|1831m)/, /\bsecret sauce\b/] },
   { key: 'whoAreWe', patterns: [/\bwho (are|is) (you|1831m)\b/, /\btell me about (yourself|the team|1831m)\b/, /\babout (the )?team\b/] },
   { key: 'contact',  patterns: [/\bcontact\b/, /\bemail address\b/, /\bhow (do|can) i (contact|reach|email)/, /\bget in touch\b/] },
