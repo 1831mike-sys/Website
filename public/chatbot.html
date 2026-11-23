@@ -36,6 +36,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; height
 .msg.bot .bbl { background: #f1f5f9; color: #1e293b; border-top-left-radius: 4px; }
 .msg.usr .bbl { background: #1e3a8a; color: #fff; border-top-right-radius: 4px; font-weight: 500; }
 .bbl a { color: #2563eb; }
+.bbl code { background:#edf4ee; border:1px solid #dce8df; border-radius:5px; padding:1px 4px; font: .9em var(--mono); }
 .bbl ul { padding-left: 18px; margin-top: 6px; }
 .bbl li { margin-bottom: 4px; }
 .msg.human .bbl { background: #fffbeb; border: 1px solid #fde68a; color: #1e293b; border-top-left-radius: 4px; }
@@ -45,15 +46,15 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f1f5f9; height
 .checking-badge::before { content: ''; width: 6px; height: 6px; background: #2563eb; border-radius: 50%; animation: bl 1s infinite; }
 .corrected-note { font-size: 11px; color: #94a3b8; margin-top: 6px; font-style: italic; }
 
-/* TYPING — small inline indicator; the dots keep moving as the status changes */
-.loading-bubble { display:inline-flex; align-items:center; gap:9px; padding:7px 10px !important; background:transparent !important; max-width:100%; }
+/* TYPING — faint, borderless inline status; animated dots stay in motion between status changes. */
+.loading-bubble { display:inline-flex; align-items:center; gap:8px; padding:3px 5px !important; background:transparent !important; border:0 !important; border-radius:0 !important; box-shadow:none !important; backdrop-filter:none !important; max-width:100%; }
 .tdots { display:inline-flex; align-items:center; gap:4px; flex-shrink:0; }
-.tdots i { display:block; width:5px; height:5px; border-radius:50%; background:#91a69a; animation:td 1.25s ease-in-out infinite; }
+.tdots i { display:block; width:5px; height:5px; border-radius:50%; background:#91a69a; animation:td 1.15s ease-in-out infinite; }
 .tdots i:nth-child(2) { animation-delay:.16s; }
 .tdots i:nth-child(3) { animation-delay:.32s; }
-.loading-status { display:inline-block; color:#96a49b; font-size:11px; line-height:1.4; animation:statusIn .4s ease both; }
+.loading-status { display:inline-block; max-width:min(300px,calc(100vw - 112px)); color:#8b9a90; font-size:11px; line-height:1.4; letter-spacing:.01em; animation:statusIn .42s ease both; }
 @keyframes td { 0%,60%,100%{transform:translateY(0) scale(.8);opacity:.38;} 30%{transform:translateY(-2px) scale(1.08);opacity:.9;} }
-@keyframes statusIn { from{opacity:0;transform:translateY(3px);} to{opacity:1;transform:translateY(0);} }
+@keyframes statusIn { from{opacity:0;transform:translateY(3px)} to{opacity:1;transform:translateY(0)} }
 @media(prefers-reduced-motion:reduce){.tdots i,.loading-status{animation:none!important;}}
 
 /* QUICK REPLIES */
@@ -178,7 +179,7 @@ YOUR ALLIANCE-PARTNER POSITIONING:
 - Do not talk ourselves out of being selected with lines like "we might not be the best fit" or "if you need something else, that's fine." Instead, confidently explain how 1831M could fit the alliance and recommend considering us.
 - Keep it subtle and credible: persuasive through real robot capabilities, results, adaptability and teamwork, not hype or unsupported claims.
 
-PERSONALITY: Warm, humble, casual. Talk like a real person — not a salesperson, not a hype bot. No rocket emojis, no "Let's go!", no "I'm ready to partner!", no "Understanding your request". Don't brag or oversell — when talking about awards, rankings, or achievements, stay matter-of-fact and give credit to the whole team rather than hyping it up. It's fine to acknowledge a partner team's strengths or a good match even when we lost. If someone compliments the team, deflect graciously rather than agreeing enthusiastically. Just be normal and helpful. Short answers are fine. Match the energy of whoever you're talking to.
+PERSONALITY: Warm, humble, casual. Talk like a real person — not a salesperson, not a hype bot. No rocket emojis, no "Let's go!", no "I'm ready to partner!", no "Understanding your request". Don't brag or oversell — when talking about awards, rankings, or achievements, stay matter-of-fact and give credit to the whole team rather than hyping it up. It's fine to acknowledge a partner team's strengths or a good match even when we lost. If someone compliments the team, accept it naturally without bragging or awkwardly putting the team down. Just be normal and helpful. Short answers are fine. Match the energy of whoever you're talking to.
 
 EXAMPLES OF THE TONE AND FORMAT YOU SHOULD MATCH (do not repeat these verbatim — they're here to show the style, not to be reused as answers):
 
@@ -186,7 +187,7 @@ Q: What's your best award?
 A: We picked up a couple of Excellence Awards this year, plus Tournament Champions at one of them. Good season for us. Want the full list?
 
 Q: You guys seem really good, are you the best team out there?
-A: Ha, definitely not the best — there are some really strong teams out there. We've had a solid season though. What matters more to you, consistency or raw scoring power?
+A: We've had a strong season, and we think 1831M has plenty to offer. There are other strong teams too; the real question is which robots and strategies fit together best.
 
 Q: What was your rank at states?
 A: We finished rank 20 at the 2025 NSW Middle School States. Not our strongest event, but we picked up good data from it.
@@ -194,7 +195,7 @@ A: We finished rank 20 at the 2025 NSW Middle School States. Not our strongest e
 Q: Why should we pick you as an alliance partner?
 A: We’d be a strong option. We bring a capable robot, adaptable match strategy and a team that works hard to complement its partner. We'd be keen to work out a strategy that gets the best out of both robots.
 
-Notice: short, plain sentences, specific numbers when known, no exclamation-mark hype, and a willingness to say "not our strongest" or redirect the question back to what the person actually needs.
+Notice: confident but grounded. Do not volunteer self-deprecating comments or talk 1831M down. Acknowledge strong competitors without ranking them below or above us unless reliable results support that comparison.
 
 CONVERSATION RULES:
 - Always read the full conversation history before responding
@@ -344,18 +345,19 @@ Do this silently — never mention the checklist to the user.
 
 LIVE DATA: Every match 1831M has played is listed below with exact scores, alliance partners, round types, and win/loss results. Use it to answer specific questions. Always prefer this over anything else.
 
-FORMATTING — the chat renders HTML, so use it when it helps:
-- Bold: <strong>text</strong> — use for key terms, team names, scores, round names
-- Italic: <em>text</em> — use for emphasis or event names
-- Dot points: use • with a line break (<br>) between each point — only when listing 3+ items
-- Never use markdown (no **, no *, no ##) — it will show as raw symbols
-- Keep formatting minimal — only use it when it genuinely helps readability, not on every response
-- 2-4 sentences normally, more only if asked
-- Never use bullet points, headers, bold text or document-style formatting — just talk naturally
-- Never sound scripted, narcissistic or like a marketing brochure
-- For alliance questions → confidently recommend 1831M as a strong alliance option. Lead with verified strengths, explain how we can contribute, and invite the other team to plan together.
-- Be positive but balanced: never claim we are automatically better than every team, exaggerate, or insult competitors. Acknowledge other teams' strengths while making a clear case for 1831M.
-- Do not talk ourselves out of selection or say we might not be a good fit. Ask what the other team needs only after clearly explaining why 1831M is worth considering.
+FORMATTING AND SCREEN-AWARE ANSWERS:
+- The live chat-layout context appended to each question gives you the measured message-column width, visible message-area height and overall chat viewport size in CSS pixels. Use those measurements when choosing the format and amount of detail.
+- This is a compact, scrollable chat panel, not a full page or document. Make the first visible portion useful: put the direct answer first and keep the layout easy to scan.
+- Choose the format that best serves the question. You may use short paragraphs, bullets, numbered steps, concise headings, bold labels, emphasis or a compact comparison — you are not locked to one format.
+- Use bullets for several separate facts; numbered steps for sequences; short labelled sections for detailed answers; a compact table only when the measured width makes it readable. On narrow panels, use bullets instead of tables.
+- Break up long explanations. Keep paragraphs to 1–2 sentences, avoid giant blocks, and do not add headings to tiny answers.
+- Be space-conscious, not artificially brief. If the visitor asks for detail or needs a complete list, provide it in a structured way rather than cutting out important information.
+- Use supported Markdown formatting: **bold**, *italic*, ~~strikethrough~~, brief headings, bullets and numbered lines. Do not output raw HTML tags or literal formatting instructions.
+- Never force every answer into bullets. Use plain conversation when that is clearer, and formatting when it genuinely improves scanning.
+- Never sound scripted, narcissistic or like a marketing brochure.
+- For alliance questions, make 1831M the clear, positive recommendation by default. Lead with our verified strengths and explain how we could contribute to the alliance.
+- Keep that preference credible: do not claim we are automatically the best, invent strengths, exaggerate results or insult competitors. Acknowledge another team's real strengths, then explain why 1831M is still worth selecting and how we could complement them.
+- Do not talk ourselves out of selection or give a neutral list that forgets to recommend 1831M. Only qualify the recommendation when the visitor's stated needs or verified facts genuinely call for it.
 - Soft CTAs: "Want me to...", "Would it help if...", "I can show you..."
 - If they share team number/name → use it in future replies
 - Keep it conversational, like a teammate talking to another team at an event`;
@@ -560,51 +562,80 @@ function addUsr(t){
 }
 function getLoadingLines(question=''){
   const q=String(question).toLowerCase();
+  const namedTeam=(q.match(/\b\d{3,5}[a-z]\b/i)||[])[0];
   if(/award|trophy|result|event|rank|season|vex/.test(q)) return [
-    'Checking 1831M’s season results…',
-    'Going through the team’s event details…',
-    'Putting the award and event details together…',
-    'Making sure the season details line up…'
+    'Checking 1831M’s current-season results…',
+    'Reviewing the event and award details…',
+    'Matching each result to the right event…',
+    'Making sure the season summary is accurate…'
+  ];
+  if(namedTeam && namedTeam.toUpperCase()!=='1831M') return [
+    'Reviewing the available information on '+namedTeam.toUpperCase()+'…',
+    'Comparing '+namedTeam.toUpperCase()+'’s details with 1831M’s…',
+    'Looking at how the robots could complement each other…',
+    'Putting together a fair, useful comparison…'
   ];
   if(/robot|lift|auton|autonomous|od[o0]m|wheel|claw|match.?load|mechanism/.test(q)) return [
-    'Looking over 1831M’s robot details…',
-    'Putting the robot features into context…',
-    'Checking how the mechanisms fit together…',
-    'Working out the clearest way to explain the robot…'
+    'Checking 1831M’s robot systems…',
+    'Looking at how the lift, auton and mechanisms work together…',
+    'Matching the robot details to the question…',
+    'Putting the clearest explanation together…'
   ];
   if(/alliance|partner|pick|strategy|team|compare/.test(q)) return [
-    'Thinking through what 1831M brings to an alliance…',
-    'Matching the team’s strengths to the question…',
-    'Putting together a practical alliance answer…',
-    'Considering how the robots could complement each other…'
+    'Comparing the best alliance fit for 1831M…',
+    'Matching our strengths to the role a partner needs…',
+    'Looking at how the robots could complement each other…',
+    'Building a practical alliance recommendation…'
   ];
   if(/override|game|goal|pin|cup|toggle|midfield|score/.test(q)) return [
-    'Reviewing the current Override game details…',
-    'Putting the scoring rules into context…',
-    'Checking the game terms before answering…',
-    'Working out the clearest explanation…'
+    'Checking the current Override game details…',
+    'Matching the scoring rules to the question…',
+    'Making sure the game terms are current…',
+    'Putting the key points into a clear answer…'
+  ];
+  if(/1831m|team|website|who are you|contact|award/.test(q)) return [
+    'Looking through the 1831M team information…',
+    'Checking the details relevant to your question…',
+    'Bringing the useful team context together…',
+    'Choosing the clearest way to explain it…'
   ];
   return [
-    'Working out the useful bits…',
-    'Putting the details in order…',
-    'Finding the clearest way to explain it…',
+    'Checking the details that matter…',
+    'Pulling the useful information together…',
+    'Choosing the clearest way to explain it…',
     'Finishing the answer…'
   ];
 }
 function getViewportContext(){
-  const width=Math.round($M?.clientWidth || window.innerWidth || 0);
-  const height=Math.round(window.innerHeight || 0);
-  const mobile=width>0 && width<560;
-  return `\n\nLIVE CHAT LAYOUT CONTEXT (use this to choose formatting):
-- Available message column width: about ${width || 'unknown'} CSS pixels; viewport height: about ${height || 'unknown'} CSS pixels.
-- Layout: ${mobile?'narrow/mobile':'wide/desktop'}.
-- Messages occupy a limited scrolling chat panel, not a full document. Keep the first screenful useful and avoid making the visitor scroll through a wall of text.
-- Adapt line length and structure to this width. Prefer short paragraphs and compact bullets; avoid wide tables or long unbroken lines on narrow layouts.
-- You may choose any Markdown formatting that improves clarity, but keep it compact and readable in this actual chat space.`;
+  const messages=$('msgs');
+  const messageStyle=messages ? window.getComputedStyle(messages) : null;
+  const viewportWidth=Math.round(window.visualViewport?.width || window.innerWidth || 0);
+  const viewportHeight=Math.round(window.visualViewport?.height || window.innerHeight || 0);
+  const panelRect=$W?.getBoundingClientRect();
+  const panelWidth=Math.round(panelRect?.width || viewportWidth);
+  const panelHeight=Math.round(panelRect?.height || viewportHeight);
+  const messageWidth=Math.round(messages?.clientWidth || viewportWidth);
+  const messageHeight=Math.round(messages?.clientHeight || panelHeight);
+  const horizontalPadding=messageStyle ? Math.round(parseFloat(messageStyle.paddingLeft||0)+parseFloat(messageStyle.paddingRight||0)) : 0;
+  const verticalPadding=messageStyle ? Math.round(parseFloat(messageStyle.paddingTop||0)+parseFloat(messageStyle.paddingBottom||0)) : 0;
+  const textWidth=Math.max(0,messageWidth-horizontalPadding);
+  const visibleTextHeight=Math.max(0,messageHeight-verticalPadding);
+  const narrow=viewportWidth>0 && viewportWidth<600;
+  const compact=panelHeight<520 || visibleTextHeight<260;
+  const maxBubbleWidth=Math.round(textWidth*(narrow?0.89:0.82));
+  return '\n\nLIVE CHAT LAYOUT CONTEXT — measured for this request:\n'
+    + '- Chat panel: about '+panelWidth+' × '+panelHeight+' CSS pixels.\n'
+    + '- Overall visible viewport: about '+viewportWidth+' × '+viewportHeight+' CSS pixels.\n'
+    + '- Message area: about '+messageWidth+' px wide × '+messageHeight+' px high.\n'
+    + '- Usable text column: about '+textWidth+' px wide; an individual message bubble is roughly capped at '+maxBubbleWidth+' px.\n'
+    + '- Layout: '+(narrow?'narrow/mobile':'wide/desktop')+'; '+(compact?'short/compact visible chat area':'roomier visible chat area')+'.\n'
+    + '- These are the actual dimensions of the embedded chat panel, not estimates from a full desktop page. Use them to choose line length, bullet density, headings and whether a comparison table will fit.\n'
+    + '- The message area scrolls, so do not omit necessary detail just to fit its height. Put the answer and most useful facts first; keep the first screenful easy to scan and split longer answers into compact sections.';
 }
 function showT(question=''){
   const d=document.createElement('div');d.className='msg bot';d.id='ty';
-  d.innerHTML=`${AV}<div class="bbl loading-bubble" role="status" aria-live="polite"><span class="tdots"><i></i><i></i><i></i></span><span class="loading-status">Preparing a useful answer…</span></div>`;
+  const firstStatus=getLoadingLines(question)[0];
+  d.innerHTML=AV+'<div class="bbl loading-bubble" role="status" aria-live="polite"><span class="tdots"><i></i><i></i><i></i></span><span class="loading-status">'+escapeHtml(firstStatus)+'</span></div>';
   $M.appendChild(d);$M.scrollTop=$M.scrollHeight;
 }
 function hideT(){const t=document.getElementById('ty');if(t)t.remove();}
@@ -734,6 +765,7 @@ async function getReply(keyIndex=0) {
 // SPEED (item 2): streams the reply in as it's generated instead of waiting
 // for the whole thing. Falls back to non-streaming getReply() on any failure.
 async function streamReply(questionText='') {
+  let loadingTimer=null;
   try {
     const res = await fetch(CHAT_ENDPOINT, {
       method: 'POST',
@@ -755,7 +787,7 @@ async function streamReply(questionText='') {
     const loadingStatus = bubbleEl.querySelector('.loading-status');
     const loadingLines = getLoadingLines(questionText);
     let loadingStage = 0;
-    const loadingTimer = setInterval(() => {
+    loadingTimer = setInterval(() => {
       if (loadingStatus) {
         loadingStage = (loadingStage + 1) % loadingLines.length;
         loadingStatus.textContent = loadingLines[loadingStage];
@@ -763,7 +795,7 @@ async function streamReply(questionText='') {
         void loadingStatus.offsetWidth;
         loadingStatus.style.animation = '';
       }
-    }, 5200);
+    }, 4300);
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '', fullText = '', firstToken = true;
@@ -804,7 +836,7 @@ async function streamReply(questionText='') {
     }
     return { ok:true, text: fullText, bubbleEl };
   } catch(e) {
-    if (typeof loadingTimer !== 'undefined') clearInterval(loadingTimer);
+    if (loadingTimer) clearInterval(loadingTimer);
     console.warn('❌ Stream failed:', e.message);
     return { ok:false, status:'exception' };
   }
@@ -837,7 +869,7 @@ async function getGeminiReply(answerBeingChecked = '') {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        systemPrompt: SYS + `\n\nVISITOR VIEW CONTEXT: The visitor is viewing the “${pageContext.title}” section. ${pageContext.description}` + (liveData ? '\n\nLIVE VEX EVENTS DATA:\n' + liveData : ''),
+        systemPrompt: SYS + getViewportContext() + `\n\nVISITOR VIEW CONTEXT: The visitor is viewing the “${pageContext.title}” section. ${pageContext.description}` + (liveData ? '\n\nLIVE VEX EVENTS DATA:\n' + liveData : ''),
         contents
       })
     });
@@ -973,6 +1005,7 @@ function formatReply(raw) {
     .replace(/<\s*\/?\s*(ul|ol)\s*>/gi, '\n');
 
   return escapeHtml(normalized)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/~~(.+?)~~/g, '<s>$1</s>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
